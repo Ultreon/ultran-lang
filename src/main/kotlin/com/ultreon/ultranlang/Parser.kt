@@ -16,7 +16,12 @@ class Parser(val lexer: Lexer) {
     }
 
     fun error(errorCode: ErrorCode, token: Token) {
-        throw ParserException(errorCode, token, "${errorCode.value} -> $token")
+        throw ParserException(errorCode, token, "${errorCode.value} -> ${token.value}")
+    }
+
+    fun error(errorCode: ErrorCode, got: Token, expected: TokenType) {
+        throw ParserException(errorCode, got,
+            "${errorCode.value} at ${got.line}:${got.column} -> ${got.type?.value} expected ${expected.value}")
     }
 
     fun eat(tokenType: TokenType) {
@@ -24,10 +29,13 @@ class Parser(val lexer: Lexer) {
         // type and if they match then "eat" the current token
         // and assign the next token to the self.current_token,
         // otherwise raise an exception.
+        if (SHOULD_LOG_TOKENS) {
+            println("Token: (${currentToken.type?.value}), expect: (${tokenType.value})")
+        }
         if (currentToken.type == tokenType) {
             currentToken = getNextToken()
         } else {
-            error(ErrorCode.UNEXPECTED_TOKEN, currentToken)
+            error(ErrorCode.UNEXPECTED_TOKEN, currentToken, tokenType)
         }
     }
 
@@ -40,9 +48,10 @@ class Parser(val lexer: Lexer) {
         if (varNode is Var) {
             val progName = varNode.value as String
             eat(TokenType.SEMI)
-            val block = block()
-            val programNode = Program(progName, block)
-            eat(TokenType.DOT)
+            val nodes = statementList()
+            val programNode = Program(progName)
+            programNode.statements += nodes
+            eat(TokenType.EOF)
             return programNode
         } else {
             throw ParserException(ErrorCode.UNEXPECTED_TOKEN, currentToken)
@@ -68,13 +77,13 @@ class Parser(val lexer: Lexer) {
         if (currentToken.type == TokenType.VAR) {
             eat(TokenType.VAR)
             while (currentToken.type == TokenType.ID) {
-                val varDeclaration = variableDeclaration()
+                val varDeclaration = variableDeclarations()
                 declarations.addAll(varDeclaration)
                 eat(TokenType.SEMI)
             }
         }
         while (currentToken.type == TokenType.FUNCTION) {
-            val procDeclaration = procedureDeclaration()
+            val procDeclaration = funcDeclaration()
             declarations.add(procDeclaration)
         }
         return declarations
@@ -125,7 +134,7 @@ class Parser(val lexer: Lexer) {
     /**
      * variable_declaration : ID (COMMA ID)* COLON type_spec
      */
-    fun variableDeclaration(): List<VarDecl> {
+    fun variableDeclarations(): List<VarDecl> {
         val varNodes = mutableListOf(Var(currentToken))
         eat(TokenType.ID)
 
@@ -147,10 +156,27 @@ class Parser(val lexer: Lexer) {
     }
 
     /**
+     * variable_declaration : ID (COMMA ID)* COLON type_spec
+     */
+    fun variableDeclaration(): VarDecl {
+        val varNode = Var(currentToken)
+        eat(TokenType.ID)
+
+        eat(TokenType.COLON)
+
+        val typeNode = typeSpec()
+        val varDeclaration = VarDecl(varNode, typeNode)
+
+        return varDeclaration
+    }
+
+    /**
      * procedure_declaration :
      *   PROCEDURE ID (LPAREN formal_parameter_list RPAREN)? SEMI block SEMI
      */
-    fun procedureDeclaration(): FuncDeclaration {
+    fun funcDeclaration(): FuncDeclaration {
+        val hash = Any().hashCode().toUInt().toString(16)
+        println("Starting function declaration ($hash) at ${currentToken.line}:${currentToken.column}")
         eat(TokenType.FUNCTION)
         val procName = currentToken.value as String
         eat(TokenType.ID)
@@ -160,10 +186,21 @@ class Parser(val lexer: Lexer) {
             formalParams.addAll(formalParameterList())
             eat(TokenType.RPAREN)
         }
-        eat(TokenType.SEMI)
-        val blockNode = block()
-        eat(TokenType.SEMI)
-        return FuncDeclaration(procName, formalParams, blockNode)
+        eat(TokenType.LCURL)
+        val nodes = statementList()
+        eat(TokenType.RCURL)
+
+        println("Finished function declaration ($hash) at ${currentToken.line}:${currentToken.column}")
+
+//        println("Function Declaration (current token): ${currentToken.type} (${lexer.lineno}, ${lexer.column}) ${lexer.pos}")
+
+        val funcDeclaration = FuncDeclaration(procName, formalParams)
+
+        for (node in nodes) {
+            funcDeclaration.statements.add(node)
+        }
+
+        return funcDeclaration
     }
 
     /**
@@ -201,14 +238,26 @@ class Parser(val lexer: Lexer) {
      *                | statement SEMI statement_list
      */
     fun statementList(): List<AST> {
+        val hash = Any().hashCode().toUInt().toString(16)
+        println("Starting statement list ($hash) at ${currentToken.line}:${currentToken.column}")
+
+        if (currentToken.line == 8 && currentToken.column == 5) {
+            throw ParserException(ErrorCode.DEBUG, currentToken,
+                "Started statement list at wrong place: ${currentToken.line}:${currentToken.column}")
+        }
+
         val node = statement()
 
-        val results = mutableListOf<AST>()
+        val results = mutableListOf<AST>(node)
 
         while (currentToken.type == TokenType.SEMI) {
             eat(TokenType.SEMI)
+//            println("statementList: currentToken = $currentToken")
             results.add(statement())
+            println("Expect SEMI: currentToken = $currentToken")
         }
+
+        println("Finished statement list ($hash) at ${currentToken.line}:${currentToken.column}")
 
         return results
     }
@@ -220,22 +269,32 @@ class Parser(val lexer: Lexer) {
      *           | empty
      */
     fun statement(): AST {
-        val node = if (currentToken.type == TokenType.BEGIN) {
+        val hash = Any().hashCode().toUInt().toString(16)
+        println("Starting statement ($hash) at ${currentToken.line}:${currentToken.column}")
+        val node = /*if (currentToken.type == TokenType.BEGIN) {
             compoundStatement()
-        } else if (currentToken.type == TokenType.ID && lexer.currentChar == '(') {
-            procCallStatement()
+        } else */if (currentToken.type == TokenType.ID && lexer.currentChar == '(') {
+            funcCallStatement()
         } else if (currentToken.type == TokenType.ID) {
             assignmentStatement()
+        } else if (currentToken.type == TokenType.VAR) {
+            eat(TokenType.VAR)
+            variableDeclaration()
+        } else if (currentToken.type == TokenType.FUNCTION) {
+//            eat(TokenType.VAR)
+            funcDeclaration()
         } else {
             empty()
         }
+        println("Finished statement ($hash) at ${currentToken.line}:${currentToken.column}")
+        println("Statement: currentToken = $currentToken")
         return node
     }
 
     /**
      * proccall_statement : ID LPAREN (expr (COMMA expr)*)? RPAREN
      */
-    fun procCallStatement(): FuncCall {
+    fun funcCallStatement(): FuncCall {
         val token = currentToken
 
         val procName = currentToken.value as String
@@ -284,7 +343,7 @@ class Parser(val lexer: Lexer) {
         if (currentToken.type == TokenType.LPAREN) {
             lexer.pos = pos
             currentToken = getNextToken()
-            return procCallStatement()
+            return funcCallStatement()
         }
         return node
     }

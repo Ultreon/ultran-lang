@@ -34,16 +34,18 @@ class SemanticAnalyzer : NodeVisitor() {
     fun visitProgram(node: Program) {
         log("ENTER scope: global")
         val globalScope = ScopedSymbolTable(
-                "global",
-                1,
-                this.currentScope  // null
+            "global",
+            1,
+            this.currentScope  // null
         )
 
         globalScope.initBuiltins()
         this.currentScope = globalScope
 
         // visit subtree
-        this.visit(node.block)
+        for (statement in node.statements) {
+            this.visit(statement)
+        }
 
         log(globalScope)
 
@@ -97,7 +99,9 @@ class SemanticAnalyzer : NodeVisitor() {
             procSymbol.formalParams.add(varSymbol)
         }
 
-        this.visit(node.blockNode)
+        for (statement in node.statements) {
+            this.visit(statement)
+        }
 
         this.log(procedureScope)
 
@@ -105,11 +109,12 @@ class SemanticAnalyzer : NodeVisitor() {
         this.log("LEAVE scope: $procName")
 
         // accessed by the interpreter when executing the procedure call
-        procSymbol.blockAst = node.blockNode
+        procSymbol.statements = node.statements
     }
 
     @Visit(VarDecl::class)
     fun visitVarDecl(node: VarDecl) {
+        println("node = ${node}")
         val typeName = node.typeNode.value as String
         val typeSymbol = this.currentScope!!.lookup(typeName)
 

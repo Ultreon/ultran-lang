@@ -1,7 +1,7 @@
 package com.ultreon.ultranlang.symbol
 
 import com.ultreon.ultranlang.ActivationRecord
-import com.ultreon.ultranlang.ast.Block
+import com.ultreon.ultranlang.ast.AST
 import com.ultreon.ultranlang.func.NativeCalls
 
 class FuncSymbol(name: String, formalParams: List<VarSymbol>? = null) : Symbol(name) {
@@ -9,7 +9,7 @@ class FuncSymbol(name: String, formalParams: List<VarSymbol>? = null) : Symbol(n
         get() {
             return NativeCalls.exists(name)
         }
-    lateinit var blockAst: Block
+    lateinit var statements: List<AST>
     val formalParams: MutableList<VarSymbol> = formalParams?.toMutableList() ?: mutableListOf()
 
     override fun toString(): String {

@@ -19,17 +19,19 @@ class Interpreter(val tree: Program?) : NodeVisitor() {
     fun visitProgram(node: Program) {
         val programName = node.name
         log("ENTER: PROGRAM $programName")
-        
+
         val ar = ActivationRecord(programName, ARType.PROGRAM, 1)
         callStack.push(ar)
-        
+
         log(callStack.toString())
-        
-        visit(node.block)
-        
+
+        for (statement in node.statements) {
+            visit(statement)
+        }
+
         log("LEAVE: PROGRAM $programName")
         log(callStack.toString())
-        
+
         callStack.pop()
     }
     
@@ -149,7 +151,9 @@ class Interpreter(val tree: Program?) : NodeVisitor() {
             }
             value = returned
         } else {
-            this.visit(procSymbol.blockAst)
+            for (statement in procSymbol.statements) {
+                this.visit(statement)
+            }
             value = null
         }
 

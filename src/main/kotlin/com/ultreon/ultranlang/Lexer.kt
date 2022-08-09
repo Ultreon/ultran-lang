@@ -194,7 +194,7 @@ class Lexer(private val text: String) {
                 return number()
             }
 
-            if (currentChar == ':' && peek() == '=') {
+            if (currentChar == '=') {
                 val token = Token(
                     TokenType.ASSIGN,
                     TokenType.ASSIGN.value, // ":="
@@ -202,7 +202,6 @@ class Lexer(private val text: String) {
                     column
                 )
 
-                advance()
                 advance()
                 return token
             }

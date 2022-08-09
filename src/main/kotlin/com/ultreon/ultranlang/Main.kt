@@ -23,6 +23,8 @@ fun main(args: Array<String>) {
 
     SHOULD_LOG_SCOPE = flags.remove("scope")
     SHOULD_LOG_STACK = flags.remove("stack")
+    SHOULD_LOG_TOKENS = flags.remove("tokens")
+    SHOULD_LOG_INTERNAL_ERRORS = flags.remove("internal-errors")
 
     if (flags.isNotEmpty()) {
         println("Unknown flags: ${flags.joinToString(", ")}")
@@ -51,28 +53,34 @@ fun main(args: Array<String>) {
         val parser = Parser(lexer)
         tree = parser.parse()
     } catch (e: LexerException) {
-        e.printStackTrace()
-        println(e.message)
+        if (SHOULD_LOG_INTERNAL_ERRORS) e.printStackTrace()
+        printerr(e.message)
         exitProcess(1)
     } catch (e: ParserException) {
-        e.printStackTrace()
-        println(e.message)
+        if (SHOULD_LOG_INTERNAL_ERRORS) e.printStackTrace()
+        printerr(e.message)
         exitProcess(1)
     } catch (e: InvocationTargetException) {
         var cause = e.cause
         while (cause is InvocationTargetException) {
             cause = cause.cause
         }
-        if (cause is LexerException) {
-            cause.printStackTrace()
-            println(cause.message)
-            exitProcess(1)
-        } else if (cause is ParserException) {
-            cause.printStackTrace()
-            println(cause.message)
-            exitProcess(1)
-        } else {
-            throw e
+        when (cause) {
+            is LexerException -> {
+                if (SHOULD_LOG_INTERNAL_ERRORS) cause.printStackTrace()
+                println(cause.message)
+                exitProcess(1)
+            }
+
+            is ParserException -> {
+                if (SHOULD_LOG_INTERNAL_ERRORS) cause.printStackTrace()
+                println(cause.message)
+                exitProcess(1)
+            }
+
+            else -> {
+                throw e
+            }
         }
     }
 
@@ -100,4 +108,8 @@ fun main(args: Array<String>) {
 
     val interpreter = Interpreter(tree)
     interpreter.interpret()
+}
+
+fun printerr(message: String?) {
+    System.err.println(message)
 }

@@ -1,7 +1,7 @@
 package com.ultreon.ultranlang.token
 
 @Suppress("SpellCheckingInspection")
-open class TokenType(val value: String) {
+class TokenType(val value: String) {
     override fun toString(): String {
         return value
     }

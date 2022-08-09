@@ -1,6 +1,7 @@
 package com.ultreon.ultranlang
 
 import com.ultreon.ultranlang.token.TokenType
+import kotlin.properties.Delegates
 
 /**
  * Build a dictionary of reserved keywords.
@@ -34,5 +35,7 @@ internal fun buildReservedKeywords(): HashMap<String, TokenType> {
 
 val reservedKeywords = buildReservedKeywords()
 
-var SHOULD_LOG_SCOPE = true
-var SHOULD_LOG_STACK = true
+var SHOULD_LOG_SCOPE by Delegates.notNull<Boolean>()
+var SHOULD_LOG_STACK by Delegates.notNull<Boolean>()
+var SHOULD_LOG_TOKENS by Delegates.notNull<Boolean>()
+var SHOULD_LOG_INTERNAL_ERRORS by Delegates.notNull<Boolean>()
