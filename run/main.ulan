@@ -1,0 +1,22 @@
+program Main;
+
+function Alpha(a : integer; b : integer);
+var x : integer;
+
+   function Beta(a : integer; b : integer);
+   var x : integer;
+   begin
+      x := a * 10 + b * 2;
+   end;
+
+begin
+   x := (a + b ) * 2;
+
+   Beta(5, 10);      { function call }
+end;
+
+begin { Main }
+
+   Alpha(3 + 5, 7);  { function call }
+
+end.  { Main }
