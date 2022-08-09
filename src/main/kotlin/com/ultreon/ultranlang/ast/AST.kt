@@ -1,5 +1,9 @@
 package com.ultreon.ultranlang.ast
 
-interface AST {
+import kotlin.String
 
+abstract class AST {
+    override fun toString(): String {
+        return "<${this::class.simpleName}()>"
+    }
 }

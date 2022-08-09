@@ -37,12 +37,16 @@ class Parser(val lexer: Lexer) {
     fun program(): Program {
         eat(TokenType.PROGRAM)
         val varNode = variable()
-        val progName = varNode.value as String
-        eat(TokenType.SEMI)
-        val block = block()
-        val programNode = Program(progName, block)
-        eat(TokenType.DOT)
-        return programNode
+        if (varNode is Var) {
+            val progName = varNode.value as String
+            eat(TokenType.SEMI)
+            val block = block()
+            val programNode = Program(progName, block)
+            eat(TokenType.DOT)
+            return programNode
+        } else {
+            throw ParserException(ErrorCode.UNEXPECTED_TOKEN, currentToken)
+        }
     }
 
     /**
@@ -180,9 +184,9 @@ class Parser(val lexer: Lexer) {
      * compound_statement : BEGIN statement_list END
      */
     fun compoundStatement(): Compound {
-        eat(TokenType.BEGIN)
+        eat(TokenType.LCURL)
         val nodes = statementList()
-        eat(TokenType.END)
+        eat(TokenType.RCURL)
 
         val root = Compound()
         for (node in nodes) {
@@ -259,18 +263,29 @@ class Parser(val lexer: Lexer) {
      */
     fun assignmentStatement(): Assign {
         val left = variable()
-        val token = currentToken
-        eat(TokenType.ASSIGN)
-        val right = expr()
-        return Assign(left, token, right)
+        if (left is Var) {
+            val token = currentToken
+            eat(TokenType.ASSIGN)
+            val right = expr()
+            return Assign(left, token, right)
+        } else {
+            throw ParserException(ErrorCode.UNEXPECTED_TOKEN, currentToken)
+        }
     }
 
     /**
      * variable : ID
      */
-    fun variable(): Var {
+    fun variable(): AST {
         val node = Var(currentToken)
+        val pos = lexer.prevPos
         eat(TokenType.ID)
+
+        if (currentToken.type == TokenType.LPAREN) {
+            lexer.pos = pos
+            currentToken = getNextToken()
+            return procCallStatement()
+        }
         return node
     }
 

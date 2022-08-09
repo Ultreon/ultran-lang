@@ -1,3 +1,3 @@
 package com.ultreon.ultranlang.ast
 
-class NoOp : AST
+class NoOp : AST()

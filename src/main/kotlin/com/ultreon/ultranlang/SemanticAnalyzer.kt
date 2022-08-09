@@ -73,6 +73,7 @@ class SemanticAnalyzer : NodeVisitor() {
     fun visitProcedureDecl(node: FuncDeclaration) {
         val procName = node.procName
         val procSymbol = FuncSymbol(procName)
+
         this.currentScope!!.insert(procSymbol)
 
         log("ENTER scope: $procName")

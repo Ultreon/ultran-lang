@@ -5,8 +5,16 @@ import com.ultreon.ultranlang.token.Token
 import com.ultreon.ultranlang.token.TokenType
 
 class Lexer(private val text: String) {
+    var prevPos: Int = -1
+        private set
     var pos = 0
-    var currentChar: Char? = text[pos]
+    val currentChar: Char?
+        get() {
+            if (pos >= text.length) {
+                return null
+            }
+            return text[pos]
+        }
     var lineno = 1
     var column = 1
 
@@ -26,9 +34,9 @@ class Lexer(private val text: String) {
 
         pos++
         if (pos >= text.length) {
-            currentChar = null
+//            currentChar = null
         } else {
-            currentChar = text[pos]
+//            currentChar = text[pos]
             column++
         }
     }
@@ -49,7 +57,7 @@ class Lexer(private val text: String) {
     }
 
     fun skipComment() {
-        while (currentChar != '}') {
+        while (currentChar != ']') {
             advance()
         }
         advance()
@@ -160,13 +168,14 @@ class Lexer(private val text: String) {
      * apart into tokens. One token at a time.
      */
     fun getNextToken(): Token {
+        prevPos = pos
         while (currentChar != null) {
             if (currentChar!!.isWhitespace()) {
                 skipWhitespace()
                 continue
             }
 
-            if (currentChar == '{') {
+            if (currentChar == '[') {
                 advance()
                 skipComment()
                 continue

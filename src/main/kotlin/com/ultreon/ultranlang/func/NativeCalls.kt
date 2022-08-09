@@ -4,6 +4,9 @@ import com.ultreon.ultranlang.ActivationRecord
 import com.ultreon.ultranlang.symbol.BuiltinTypeSymbol
 import com.ultreon.ultranlang.symbol.FuncSymbol
 import com.ultreon.ultranlang.symbol.VarSymbol
+import javax.script.ScriptException
+import kotlin.random.Random
+import kotlin.random.nextInt
 
 object NativeCalls {
     private val symbols = mutableMapOf<String, FuncSymbol>()
@@ -31,11 +34,22 @@ object NativeCalls {
                 println(message)
             }
         }
+        register("randInt",
+            mutableMapOf(Pair("x", BuiltinTypeSymbol.INTEGER), Pair("y", BuiltinTypeSymbol.INTEGER))) { args ->
+            val x = args["x"]
+            val y = args["y"]
+
+            if (x is Int && y is Int) {
+                return@register Random.nextInt(x..y)
+            } else {
+                throw ScriptException("randInt expects two integers")
+            }
+        }
     }
 
     private fun register(name: String, params: Map<String, String>, func: (ActivationRecord) -> Any?) {
         symbols[name] =
-            FuncSymbol(name, params.entries.toList().map { VarSymbol("message", BuiltinTypeSymbol("INTEGER")) })
+            FuncSymbol(name, params.entries.toList().map { VarSymbol(it.key, BuiltinTypeSymbol(it.value)) })
         declarations[name] = func
     }
 

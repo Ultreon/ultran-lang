@@ -6,7 +6,7 @@ class BuiltinTypeSymbol(name: String) : Symbol(name) {
     }
 
     fun representation(): String {
-        return "<${this::class.qualifiedName}(name=$name)>"
+        return "<${this::class.simpleName}(name=$name)>"
     }
 
     companion object {

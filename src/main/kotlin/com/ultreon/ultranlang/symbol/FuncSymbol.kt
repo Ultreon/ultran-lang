@@ -13,11 +13,11 @@ class FuncSymbol(name: String, formalParams: List<VarSymbol>? = null) : Symbol(n
     val formalParams: MutableList<VarSymbol> = formalParams?.toMutableList() ?: mutableListOf()
 
     override fun toString(): String {
-        return "<${this::class.qualifiedName}($name=$name, type=$type)>"
+        return "<${this::class.simpleName}($name=$name, type=$type)>"
     }
 
     fun representation(): String = toString()
-    fun callNative(ar: ActivationRecord) {
-        NativeCalls.nativeCall(this, formalParams, ar)
+    fun callNative(ar: ActivationRecord): Any? {
+        return NativeCalls.nativeCall(this, formalParams, ar)
     }
 }

@@ -1,22 +1,23 @@
 program Main;
-var x : integer;
+var x : integer; startX : integer; startY : integer;
 
 function Alpha(a : integer; b : integer);
-var x : integer;
+    var x : integer;
 
     function Beta(a : integer; b : integer);
     var x : integer;
-    begin
+    {
         x := a * 10 + b * 2;
-    end;
-
-begin
+    };
+{
     x := (a + b ) * 2;
-    Beta(5, 10);      { function call }
-end;
+    Beta(5, 10);      [ function call ]
+};
 
-begin { Main }
-    Alpha(3 + 5, 7);  { function call }
+{  [ Main ]
+    Alpha(3 + 5, 7);  [ function call ]
     x := 300;
-    print("Hello World! Number: " + x);
-end.  { Main }
+    startX := 10;
+    startY := 20;
+    print("Hello World! Number: " + randInt(startX, startY));
+}. [ Main ]

@@ -121,7 +121,7 @@ class Interpreter(val tree: Program?) : NodeVisitor() {
     }
 
     @Visit(FuncCall::class)
-    fun visitProcedureCall(node: FuncCall) {
+    fun visitProcedureCall(node: FuncCall): Any? {
         val procName = node.procName
         val procSymbol = node.procSymbol
 
@@ -140,16 +140,24 @@ class Interpreter(val tree: Program?) : NodeVisitor() {
         this.log(this.callStack.toString())
 
         // evaluate procedure body
+        val value: Any?
+
         if (procSymbol.isNative) {
-            procSymbol.callNative(ar)
+            var returned = procSymbol.callNative(ar)
+            if (returned == Unit) {
+                returned = null
+            }
+            value = returned
         } else {
             this.visit(procSymbol.blockAst)
+            value = null
         }
 
         this.log("LEAVE: PROCEDURE $procName")
         this.log(this.callStack.toString())
 
         this.callStack.pop()
+        return value
     }
 
     fun interpret(): Any {
