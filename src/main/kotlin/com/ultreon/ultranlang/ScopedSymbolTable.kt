@@ -1,5 +1,6 @@
 package com.ultreon.ultranlang
 
+import com.ultreon.ultranlang.func.NativeCalls
 import com.ultreon.ultranlang.symbol.BuiltinTypeSymbol
 import com.ultreon.ultranlang.symbol.Symbol
 
@@ -9,11 +10,12 @@ class ScopedSymbolTable(val scopeName: String, val scopeLevel: Int, val enclosin
     internal fun initBuiltins() {
         insert(BuiltinTypeSymbol("INTEGER"))
         insert(BuiltinTypeSymbol("REAL"))
+        insert(BuiltinTypeSymbol("STRING"))
     }
 
     override fun toString(): String {
         val h1 = "SCOPE (SCOPED SYMBOL TABLE)"
-        val lines = mutableListOf<String>("\n", h1, "=".repeat(h1.length))
+        val lines = mutableListOf("\n", h1, "=".repeat(h1.length))
 
         for ((headerName, headerValue) in mutableMapOf(
             Pair("Scope name", scopeName),
@@ -52,6 +54,8 @@ class ScopedSymbolTable(val scopeName: String, val scopeLevel: Int, val enclosin
     fun lookup(name: String, currentScopeOnly: Boolean = false): Symbol? {
         log("Lookup: $name. (Scope name: $scopeName)")
         // "symbol" is either an instance of the Symbol class or null
+        NativeCalls[name]?.run { return@lookup this@run }
+
         val symbol = symbols[name]
 
         if (symbol != null) {

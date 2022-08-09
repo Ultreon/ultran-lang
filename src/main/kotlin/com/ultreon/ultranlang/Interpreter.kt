@@ -68,6 +68,11 @@ class Interpreter(val tree: Program?) : NodeVisitor() {
         return node.value
     }
 
+    @Visit(com.ultreon.ultranlang.ast.String::class)
+    fun visitString(node: com.ultreon.ultranlang.ast.String): Any? {
+        return node.value
+    }
+
     @Visit(UnaryOp::class)
     fun visitUnaryOp(node: UnaryOp): Any? {
         return when (node.op.type) {
@@ -110,13 +115,13 @@ class Interpreter(val tree: Program?) : NodeVisitor() {
         // do nothing
     }
 
-    @Visit(ProcedureDecl::class)
-    fun visitProcedureDecl(node: ProcedureDecl) {
+    @Visit(FuncDeclaration::class)
+    fun visitProcedureDecl(node: FuncDeclaration) {
         // do nothing
     }
 
-    @Visit(ProcedureCall::class)
-    fun visitProcedureCall(node: ProcedureCall) {
+    @Visit(FuncCall::class)
+    fun visitProcedureCall(node: FuncCall) {
         val procName = node.procName
         val procSymbol = node.procSymbol
 
@@ -135,7 +140,11 @@ class Interpreter(val tree: Program?) : NodeVisitor() {
         this.log(this.callStack.toString())
 
         // evaluate procedure body
-        this.visit(procSymbol.blockAst)
+        if (procSymbol.isNative) {
+            procSymbol.callNative(ar)
+        } else {
+            this.visit(procSymbol.blockAst)
+        }
 
         this.log("LEAVE: PROCEDURE $procName")
         this.log(this.callStack.toString())

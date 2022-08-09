@@ -4,10 +4,10 @@ import com.ultreon.ultranlang.annotations.Visit
 import com.ultreon.ultranlang.ast.*
 import com.ultreon.ultranlang.error.ErrorCode
 import com.ultreon.ultranlang.error.SemanticException
-import com.ultreon.ultranlang.symbol.ProcedureSymbol
+import com.ultreon.ultranlang.symbol.FuncSymbol
 import com.ultreon.ultranlang.symbol.VarSymbol
 import com.ultreon.ultranlang.token.Token
-import java.util.Objects
+import java.util.*
 
 class SemanticAnalyzer : NodeVisitor() {
     var currentScope: ScopedSymbolTable? = null
@@ -69,18 +69,18 @@ class SemanticAnalyzer : NodeVisitor() {
         this.visit(node.right)
     }
 
-    @Visit(ProcedureDecl::class)
-    fun visitProcedureDecl(node: ProcedureDecl) {
+    @Visit(FuncDeclaration::class)
+    fun visitProcedureDecl(node: FuncDeclaration) {
         val procName = node.procName
-        val procSymbol = ProcedureSymbol(procName)
+        val procSymbol = FuncSymbol(procName)
         this.currentScope!!.insert(procSymbol)
 
         log("ENTER scope: $procName")
 
         // Scope for parameters and local variables
         val procedureScope = ScopedSymbolTable(
-                procName,
-                this.currentScope!!.scopeLevel + 1,
+            procName,
+            this.currentScope!!.scopeLevel + 1,
                 this.currentScope
         )
 
@@ -154,13 +154,13 @@ class SemanticAnalyzer : NodeVisitor() {
         // do nothing
     }
 
-    @Visit(ProcedureCall::class)
-    fun visitProcedureCall(node: ProcedureCall) {
+    @Visit(FuncCall::class)
+    fun visitProcedureCall(node: FuncCall) {
         for (paramNode in node.actualParams) {
             this.visit(paramNode)
         }
 
-        val procSymbol = this.currentScope!!.lookup(node.procName) as ProcedureSymbol
+        val procSymbol = this.currentScope!!.lookup(node.procName) as FuncSymbol
         // accessed by the interpreter when executing the procedure call
         node.procSymbol = procSymbol
     }

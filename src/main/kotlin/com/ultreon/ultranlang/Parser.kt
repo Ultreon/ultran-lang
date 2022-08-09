@@ -146,7 +146,7 @@ class Parser(val lexer: Lexer) {
      * procedure_declaration :
      *   PROCEDURE ID (LPAREN formal_parameter_list RPAREN)? SEMI block SEMI
      */
-    fun procedureDeclaration(): ProcedureDecl {
+    fun procedureDeclaration(): FuncDeclaration {
         eat(TokenType.FUNCTION)
         val procName = currentToken.value as String
         eat(TokenType.ID)
@@ -159,7 +159,7 @@ class Parser(val lexer: Lexer) {
         eat(TokenType.SEMI)
         val blockNode = block()
         eat(TokenType.SEMI)
-        return ProcedureDecl(procName, formalParams, blockNode)
+        return FuncDeclaration(procName, formalParams, blockNode)
     }
 
     /**
@@ -169,13 +169,9 @@ class Parser(val lexer: Lexer) {
     fun typeSpec(): Type {
         val token = currentToken
         when (token.type) {
-            TokenType.INTEGER -> {
-                eat(TokenType.INTEGER)
-            }
-
-            else -> {
-                eat(TokenType.REAL)
-            }
+            TokenType.INTEGER -> eat(TokenType.INTEGER)
+            TokenType.STRING -> eat(TokenType.STRING)
+            else -> eat(TokenType.REAL)
         }
         return Type(token)
     }
@@ -235,7 +231,7 @@ class Parser(val lexer: Lexer) {
     /**
      * proccall_statement : ID LPAREN (expr (COMMA expr)*)? RPAREN
      */
-    fun procCallStatement(): ProcedureCall {
+    fun procCallStatement(): FuncCall {
         val token = currentToken
 
         val procName = currentToken.value as String
@@ -255,7 +251,7 @@ class Parser(val lexer: Lexer) {
 
         eat(TokenType.RPAREN)
 
-        return ProcedureCall(procName, actualParams, token)
+        return FuncCall(procName, actualParams, token)
     }
 
     /**
@@ -347,6 +343,11 @@ class Parser(val lexer: Lexer) {
             }
 
             TokenType.INTEGER_CONST -> {
+                eat(TokenType.INTEGER_CONST)
+                return Num(token)
+            }
+
+            TokenType.STRING_CONST -> {
                 eat(TokenType.INTEGER_CONST)
                 return Num(token)
             }

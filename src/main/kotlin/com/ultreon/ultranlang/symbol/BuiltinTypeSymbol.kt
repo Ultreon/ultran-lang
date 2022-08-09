@@ -1,8 +1,5 @@
 package com.ultreon.ultranlang.symbol
 
-import com.ultreon.ultranlang.ast.AST
-import kotlin.reflect.KClass
-
 class BuiltinTypeSymbol(name: String) : Symbol(name) {
     override fun toString(): String {
         return name
@@ -10,5 +7,11 @@ class BuiltinTypeSymbol(name: String) : Symbol(name) {
 
     fun representation(): String {
         return "<${this::class.qualifiedName}(name=$name)>"
+    }
+
+    companion object {
+        const val INTEGER: String = "INTEGER"
+        const val REAL: String = "REAL"
+        const val STRING: String = "STRING"
     }
 }

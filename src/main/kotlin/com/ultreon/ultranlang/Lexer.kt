@@ -3,7 +3,6 @@ package com.ultreon.ultranlang
 import com.ultreon.ultranlang.error.LexerException
 import com.ultreon.ultranlang.token.Token
 import com.ultreon.ultranlang.token.TokenType
-import java.lang.IllegalStateException
 
 class Lexer(private val text: String) {
     var pos = 0
@@ -54,6 +53,47 @@ class Lexer(private val text: String) {
             advance()
         }
         advance()
+    }
+
+    fun string(): Token {
+        var s = ""
+        while (currentChar != '"') {
+            if (currentChar == '\\') {
+                advance()
+                s += when (currentChar) {
+                    'n' -> '\n'
+                    't' -> '\t'
+                    'r' -> '\r'
+                    'b' -> '\b'
+                    '0' -> '\u0000'
+                    'x' -> {
+                        advance()
+                        advance()
+                        val hex = text.substring(pos - 2, pos)
+                        s += hex.toInt(16).toChar()
+                    }
+
+                    'u' -> {
+                        advance()
+                        advance()
+                        advance()
+                        advance()
+                        val hex = text.substring(pos - 4, pos)
+                        s += hex.toInt(16).toChar()
+                    }
+
+                    else -> currentChar
+                }
+                s += currentChar
+            } else if (currentChar != '"') {
+                s += currentChar
+            } else {
+                break
+            }
+            advance()
+        }
+        advance()
+        return Token(TokenType.STRING_CONST, s, lineno, column)
     }
 
     /**
@@ -130,6 +170,11 @@ class Lexer(private val text: String) {
                 advance()
                 skipComment()
                 continue
+            }
+
+            if (currentChar == '"') {
+                advance()
+                return string()
             }
 
             if (currentChar!!.isLetter()) {

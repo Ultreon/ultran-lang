@@ -19,6 +19,10 @@ open class TokenType(val value: String) {
     object PROGRAM : TokenType("PROGRAM")
     object INTEGER : TokenType("INTEGER")
     object REAL : TokenType("REAL")
+    object STRING : TokenType("STRING")
+    object BOOLEAN : TokenType("BOOLEAN")
+    object TRUE : TokenType("TRUE")
+    object FALSE : TokenType("FALSE")
     object INTEGER_DIV : TokenType("DIV")
     object VAR : TokenType("VAR")
     object FUNCTION : TokenType("FUNCTION")
@@ -29,6 +33,7 @@ open class TokenType(val value: String) {
     object ID : TokenType("ID")
     object INTEGER_CONST : TokenType("INTEGER_CONST")
     object REAL_CONST : TokenType("REAL_CONST")
+    object STRING_CONST : TokenType("INTEGER_CONST")
     object ASSIGN : TokenType("ASSIGN")
     object EOF : TokenType("EOF")
 

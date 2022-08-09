@@ -1,4 +1,5 @@
 package com.ultreon.ultranlang.ast
 
-class Program(var name: String, var block: Block) : AST {
-}
+import kotlin.String
+
+class Program(var name: String, var block: Block) : AST

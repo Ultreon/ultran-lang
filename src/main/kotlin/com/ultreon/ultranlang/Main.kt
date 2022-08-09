@@ -4,6 +4,7 @@ import com.ultreon.ultranlang.ast.Program
 import com.ultreon.ultranlang.error.LexerException
 import com.ultreon.ultranlang.error.ParserException
 import com.ultreon.ultranlang.error.SemanticException
+import com.ultreon.ultranlang.func.NativeCalls
 import java.io.File
 import java.lang.reflect.InvocationTargetException
 import kotlin.system.exitProcess
@@ -41,6 +42,8 @@ fun main(args: Array<String>) {
     }
 
     val text = inputFile.readText()
+
+    NativeCalls.load()
 
     val lexer = Lexer(text)
     val tree: Program
