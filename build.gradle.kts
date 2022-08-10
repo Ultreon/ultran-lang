@@ -6,7 +6,7 @@ plugins {
 }
 
 group = "com.ultreon"
-version = "1.0-SNAPSHOT"
+version = "0.0.1-dev2"
 
 repositories {
     mavenCentral()
