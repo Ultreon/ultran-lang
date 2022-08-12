@@ -1,7 +1,7 @@
 program Main;
 
-function Alpha(a : integer; b : integer) {
-    function Beta(a : integer; b : integer) {
+function Alpha(a: integer; b: integer) {
+    function Beta(a: integer; b: integer) {
         var x: integer;
         x = a * 10 + b * 2;
     };
@@ -25,28 +25,3 @@ function PrintHelloWorld() {
 PrintHelloWorld();
 
 print("Hello World! Number: " + randInt(startX, startY));
-print("" + randInt(startX, startY));
-print("" + randInt(startX, startY));
-print("" + randInt(startX, startY));
-print("" + randInt(startX, startY));
-print("" + randInt(startX, startY));
-print("" + randInt(startX, startY));
-print("" + randInt(startX, startY));
-print("" + randInt(startX, startY));
-print("" + randInt(startX, startY));
-print("" + randInt(startX, startY));
-print("" + randInt(startX, startY));
-print("" + randInt(startX, startY));
-print("" + randInt(startX, startY));
-print("" + randInt(startX, startY));
-print("" + randInt(startX, startY));
-print("" + randInt(startX, startY));
-print("" + randInt(startX, startY));
-print("" + randInt(startX, startY));
-print("" + randInt(startX, startY));
-print("" + randInt(startX, startY));
-print("" + randInt(startX, startY));
-print("" + randInt(startX, startY));
-print("" + randInt(startX, startY));
-print("" + randInt(startX, startY));
-print("" + randInt(startX, startY));

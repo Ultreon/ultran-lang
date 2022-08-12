@@ -1,8 +1,8 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Run test script" type="JetRunConfigurationType">
-    <option name="MAIN_CLASS_NAME" value="com.ultreon.ultranlang.MainKt" />
+    <option name="MAIN_CLASS_NAME" value="com.ultreon.ultranlangold.MainKt"/>
     <module name="ultranlang.main" />
-    <option name="PROGRAM_PARAMETERS" value="main.ulan --internal-errors"/>
+    <option name="PROGRAM_PARAMETERS" value="main.ulan --internal-errors --tokens"/>
     <shortenClasspath name="NONE" />
     <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/run" />
     <method v="2">
