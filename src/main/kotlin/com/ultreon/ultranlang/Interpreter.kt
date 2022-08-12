@@ -10,7 +10,7 @@ class Interpreter(val tree: Program?) : NodeVisitor() {
     val callStack: CallStack = CallStack()
     
     fun log(msg: Any?) {
-        if (SHOULD_LOG_STACK) {
+        if (shouldLogStack) {
             println(msg)
         }
     }

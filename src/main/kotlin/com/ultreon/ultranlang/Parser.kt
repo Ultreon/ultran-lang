@@ -29,7 +29,7 @@ class Parser(val lexer: Lexer) {
         // type and if they match then "eat" the current token
         // and assign the next token to the self.current_token,
         // otherwise raise an exception.
-        if (SHOULD_LOG_TOKENS) {
+        if (shouldLogTokens) {
             println("Token: (${currentToken.type?.value}), expect: (${tokenType.value})")
         }
         if (currentToken.type == tokenType) {

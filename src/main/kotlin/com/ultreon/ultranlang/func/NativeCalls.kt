@@ -47,7 +47,7 @@ object NativeCalls {
         }
     }
 
-    private fun register(name: String, params: Map<String, String>, func: (ActivationRecord) -> Any?) {
+    fun register(name: String, params: Map<String, String>, func: (ActivationRecord) -> Any?) {
         symbols[name] =
             FuncSymbol(name, params.entries.toList().map { VarSymbol(it.key, BuiltinTypeSymbol(it.value)) })
         declarations[name] = func

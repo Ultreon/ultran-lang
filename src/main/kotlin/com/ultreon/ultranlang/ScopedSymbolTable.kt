@@ -40,7 +40,7 @@ class ScopedSymbolTable(val scopeName: String, val scopeLevel: Int, val enclosin
     fun representation(): String = toString()
 
     fun log(msg: String) {
-        if (SHOULD_LOG_SCOPE) {
+        if (shouldLogScope) {
             println(msg)
         }
     }

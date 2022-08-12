@@ -21,10 +21,10 @@ fun main(args: Array<String>) {
         }
     }
 
-    SHOULD_LOG_SCOPE = flags.remove("scope")
-    SHOULD_LOG_STACK = flags.remove("stack")
-    SHOULD_LOG_TOKENS = flags.remove("tokens")
-    SHOULD_LOG_INTERNAL_ERRORS = flags.remove("internal-errors")
+    shouldLogScope = flags.remove("scope")
+    shouldLogStack = flags.remove("stack")
+    shouldLogTokens = flags.remove("tokens")
+    shouldLogInternalErrors = flags.remove("internal-errors")
 
     if (flags.isNotEmpty()) {
         println("Unknown flags: ${flags.joinToString(", ")}")
@@ -53,11 +53,11 @@ fun main(args: Array<String>) {
         val parser = Parser(lexer)
         tree = parser.parse()
     } catch (e: LexerException) {
-        if (SHOULD_LOG_INTERNAL_ERRORS) e.printStackTrace()
+        if (shouldLogInternalErrors) e.printStackTrace()
         printerr(e.message)
         exitProcess(1)
     } catch (e: ParserException) {
-        if (SHOULD_LOG_INTERNAL_ERRORS) e.printStackTrace()
+        if (shouldLogInternalErrors) e.printStackTrace()
         printerr(e.message)
         exitProcess(1)
     } catch (e: InvocationTargetException) {
@@ -67,13 +67,13 @@ fun main(args: Array<String>) {
         }
         when (cause) {
             is LexerException -> {
-                if (SHOULD_LOG_INTERNAL_ERRORS) cause.printStackTrace()
+                if (shouldLogInternalErrors) cause.printStackTrace()
                 println(cause.message)
                 exitProcess(1)
             }
 
             is ParserException -> {
-                if (SHOULD_LOG_INTERNAL_ERRORS) cause.printStackTrace()
+                if (shouldLogInternalErrors) cause.printStackTrace()
                 println(cause.message)
                 exitProcess(1)
             }

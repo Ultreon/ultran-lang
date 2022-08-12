@@ -35,7 +35,7 @@ internal fun buildReservedKeywords(): HashMap<String, TokenType> {
 
 val reservedKeywords = buildReservedKeywords()
 
-var SHOULD_LOG_SCOPE by Delegates.notNull<Boolean>()
-var SHOULD_LOG_STACK by Delegates.notNull<Boolean>()
-var SHOULD_LOG_TOKENS by Delegates.notNull<Boolean>()
-var SHOULD_LOG_INTERNAL_ERRORS by Delegates.notNull<Boolean>()
+var shouldLogScope by Delegates.notNull<Boolean>()
+var shouldLogStack by Delegates.notNull<Boolean>()
+var shouldLogTokens by Delegates.notNull<Boolean>()
+var shouldLogInternalErrors by Delegates.notNull<Boolean>()

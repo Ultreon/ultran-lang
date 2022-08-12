@@ -13,7 +13,7 @@ class SemanticAnalyzer : NodeVisitor() {
     var currentScope: ScopedSymbolTable? = null
 
     fun log(msg: Any?) {
-        if (SHOULD_LOG_SCOPE) {
+        if (shouldLogScope) {
             println(Objects.toString(msg))
         }
     }
