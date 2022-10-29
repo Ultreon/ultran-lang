@@ -1,4 +1,6 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
 
 plugins {
     kotlin("jvm") version "1.7.10"
@@ -14,6 +16,8 @@ version =
 fun getViewVersion(): Any {
     return "${projectVersion}+${if (System.getenv("GITHUB_BUILD_NUMBER") == null) "local" else System.getenv("GITHUB_BUILD_NUMBER")}"
 }
+
+val buildDate: ZonedDateTime = ZonedDateTime.now()
 
 repositories {
     mavenCentral()
@@ -37,10 +41,12 @@ tasks.processResources {
     inputs.dir("src/main/resources")
 
     inputs.property("version", getViewVersion())
+    inputs.property("build_date", buildDate.format(DateTimeFormatter.RFC_1123_DATE_TIME))
 
     filesMatching("product.json") {
         expand(
             "version" to getViewVersion(),
+            "build_date" to buildDate.format(DateTimeFormatter.RFC_1123_DATE_TIME),
         )
     }
 }
