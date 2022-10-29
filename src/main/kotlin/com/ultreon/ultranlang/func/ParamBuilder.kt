@@ -4,7 +4,8 @@ package com.ultreon.ultranlang.func
 class ParamBuilder {
     internal val map = mutableMapOf<String, String>()
 
-    fun add(name: String, type: String) {
+    fun add(name: String, type: String): ParamBuilder {
         map[name] = type
+        return this
     }
 }
