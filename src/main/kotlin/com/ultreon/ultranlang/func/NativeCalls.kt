@@ -49,6 +49,10 @@ class NativeCalls {
         }
     }
 
+    fun register(name: String, params: ParamBuilder, func: (ActivationRecord) -> Any?) {
+        this.register(name, params.map, func)
+    }
+
     fun register(name: String, params: Map<String, String>, func: (ActivationRecord) -> Any?) {
         symbols[name] =
             FuncSymbol(name, params.entries.toList().map { VarSymbol(it.key, BuiltinTypeSymbol(it.value)) }, this)

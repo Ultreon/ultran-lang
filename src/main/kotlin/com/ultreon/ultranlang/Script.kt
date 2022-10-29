@@ -6,15 +6,22 @@ import com.ultreon.ultranlang.error.ParserException
 import com.ultreon.ultranlang.error.SemanticException
 import com.ultreon.ultranlang.func.NativeCalls
 import java.io.File
+import java.io.InputStream
+import java.io.Reader
 import java.lang.reflect.InvocationTargetException
 import kotlin.system.exitProcess
 
-class Script(file: File) {
+@Suppress("unused")
+class Script(val code: String) {
     val calls: NativeCalls = NativeCalls()
-    private val text: String = file.readText()
+
+    constructor(file: File) : this(file.readText())
+    constructor(stream: InputStream) : this(stream.reader())
+    constructor(stream: Reader) : this(stream.readText())
+    constructor(stream: StringBuffer) : this(stream.toString())
 
     fun execute(args: Array<String>) {
-        val lexer = Lexer(text)
+        val lexer = Lexer(code)
         val tree: Program
         try {
             val parser = Parser(lexer)

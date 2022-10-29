@@ -1,6 +1,7 @@
 package com.ultreon.ultranlang
 
 import com.google.gson.Gson
+import com.ultreon.ultranlang.func.ParamBuilder
 import com.ultreon.ultranlang.token.TokenType
 import java.lang.System.err
 import kotlin.properties.Delegates
@@ -63,3 +64,7 @@ var logger = object : ILogger {
 @Suppress("unused")
 val productJson: ProductJson =
     Gson().fromJson(Script::class.java.getResourceAsStream("/product.json")!!.reader(), ProductJson::class.java)
+
+fun params(): ParamBuilder {
+    return ParamBuilder()
+}
