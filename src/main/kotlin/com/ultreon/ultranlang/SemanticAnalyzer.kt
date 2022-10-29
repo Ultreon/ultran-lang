@@ -4,17 +4,20 @@ import com.ultreon.ultranlang.annotations.Visit
 import com.ultreon.ultranlang.ast.*
 import com.ultreon.ultranlang.error.ErrorCode
 import com.ultreon.ultranlang.error.SemanticException
+import com.ultreon.ultranlang.func.NativeCalls
 import com.ultreon.ultranlang.symbol.FuncSymbol
 import com.ultreon.ultranlang.symbol.VarSymbol
 import com.ultreon.ultranlang.token.Token
 import java.util.*
 
-class SemanticAnalyzer : NodeVisitor() {
+class SemanticAnalyzer(
+    private val calls: NativeCalls
+) : NodeVisitor() {
     var currentScope: ScopedSymbolTable? = null
 
     fun log(msg: Any?) {
         if (shouldLogScope) {
-            println(Objects.toString(msg))
+            logger.debug(Objects.toString(msg))
         }
     }
 
@@ -33,11 +36,7 @@ class SemanticAnalyzer : NodeVisitor() {
     @Visit(Program::class)
     fun visitProgram(node: Program) {
         log("ENTER scope: global")
-        val globalScope = ScopedSymbolTable(
-            "global",
-            1,
-            this.currentScope  // null
-        )
+        val globalScope = ScopedSymbolTable("global", 1, this.currentScope, calls)
 
         globalScope.initBuiltins()
         this.currentScope = globalScope
@@ -74,24 +73,19 @@ class SemanticAnalyzer : NodeVisitor() {
     @Visit(FuncDeclaration::class)
     fun visitProcedureDecl(node: FuncDeclaration) {
         val procName = node.procName
-        val procSymbol = FuncSymbol(procName)
+        val procSymbol = FuncSymbol(procName, calls = calls)
 
         this.currentScope!!.insert(procSymbol)
 
         log("ENTER scope: $procName")
 
         // Scope for parameters and local variables
-        val procedureScope = ScopedSymbolTable(
-            procName,
-            this.currentScope!!.scopeLevel + 1,
-                this.currentScope
-        )
+        val procedureScope = ScopedSymbolTable(procName, this.currentScope!!.scopeLevel + 1, this.currentScope, calls)
 
         this.currentScope = procedureScope
 
         // Insert parameters into the procedure scope
         for (param in node.formalParams) {
-//            println(currentScope)
             val paramType = this.currentScope!!.lookup(param.typeNode.value as String)
             val paramName = param.varNode.value as String
             val varSymbol = VarSymbol(paramName, paramType)
@@ -114,7 +108,6 @@ class SemanticAnalyzer : NodeVisitor() {
 
     @Visit(VarDecl::class)
     fun visitVarDecl(node: VarDecl) {
-        println("node = ${node}")
         val typeName = node.typeNode.value as String
         val typeSymbol = this.currentScope!!.lookup(typeName)
 

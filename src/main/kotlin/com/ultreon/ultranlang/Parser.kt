@@ -30,7 +30,7 @@ class Parser(val lexer: Lexer) {
         // and assign the next token to the self.current_token,
         // otherwise raise an exception.
         if (shouldLogTokens) {
-            println("Token: (${currentToken.type?.value}), expect: (${tokenType.value})")
+            logger.debug("Token: (${currentToken.type?.value}), expect: (${tokenType.value})")
         }
         if (currentToken.type == tokenType) {
             currentToken = getNextToken()
@@ -176,7 +176,7 @@ class Parser(val lexer: Lexer) {
      */
     fun funcDeclaration(): FuncDeclaration {
         val hash = Any().hashCode().toUInt().toString(16)
-        println("Starting function declaration ($hash) at ${currentToken.line}:${currentToken.column}")
+        logger.debug("Starting function declaration ($hash) at ${currentToken.line}:${currentToken.column}")
         eat(TokenType.FUNCTION)
         val procName = currentToken.value as String
         eat(TokenType.ID)
@@ -190,9 +190,7 @@ class Parser(val lexer: Lexer) {
         val nodes = statementList()
         eat(TokenType.RCURL)
 
-        println("Finished function declaration ($hash) at ${currentToken.line}:${currentToken.column}")
-
-//        println("Function Declaration (current token): ${currentToken.type} (${lexer.lineno}, ${lexer.column}) ${lexer.pos}")
+        logger.debug("Finished function declaration ($hash) at ${currentToken.line}:${currentToken.column}")
 
         val funcDeclaration = FuncDeclaration(procName, formalParams)
 
@@ -239,7 +237,7 @@ class Parser(val lexer: Lexer) {
      */
     fun statementList(): List<AST> {
         val hash = Any().hashCode().toUInt().toString(16)
-        println("Starting statement list ($hash) at ${currentToken.line}:${currentToken.column}")
+        logger.debug("Starting statement list ($hash) at ${currentToken.line}:${currentToken.column}")
 
         if (currentToken.line == 8 && currentToken.column == 5) {
             throw ParserException(ErrorCode.DEBUG, currentToken,
@@ -252,12 +250,11 @@ class Parser(val lexer: Lexer) {
 
         while (currentToken.type == TokenType.SEMI) {
             eat(TokenType.SEMI)
-//            println("statementList: currentToken = $currentToken")
             results.add(statement())
-            println("Expect SEMI: currentToken = $currentToken")
+            logger.debug("Expect SEMI: currentToken = $currentToken")
         }
 
-        println("Finished statement list ($hash) at ${currentToken.line}:${currentToken.column}")
+        logger.debug("Finished statement list ($hash) at ${currentToken.line}:${currentToken.column}")
 
         return results
     }
@@ -270,7 +267,7 @@ class Parser(val lexer: Lexer) {
      */
     fun statement(): AST {
         val hash = Any().hashCode().toUInt().toString(16)
-        println("Starting statement ($hash) at ${currentToken.line}:${currentToken.column}")
+        logger.debug("Starting statement ($hash) at ${currentToken.line}:${currentToken.column}")
         val node = /*if (currentToken.type == TokenType.BEGIN) {
             compoundStatement()
         } else */if (currentToken.type == TokenType.ID && lexer.currentChar == '(') {
@@ -286,8 +283,8 @@ class Parser(val lexer: Lexer) {
         } else {
             empty()
         }
-        println("Finished statement ($hash) at ${currentToken.line}:${currentToken.column}")
-        println("Statement: currentToken = $currentToken")
+        logger.debug("Finished statement ($hash) at ${currentToken.line}:${currentToken.column}")
+        logger.debug("Statement: currentToken = $currentToken")
         return node
     }
 

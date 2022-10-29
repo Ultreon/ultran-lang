@@ -8,7 +8,7 @@ import javax.script.ScriptException
 import kotlin.random.Random
 import kotlin.random.nextInt
 
-object NativeCalls {
+class NativeCalls {
     private val symbols = mutableMapOf<String, FuncSymbol>()
     private val declarations = mutableMapOf<String, (ActivationRecord) -> Any?>()
 
@@ -25,7 +25,7 @@ object NativeCalls {
         return declarations.containsKey(name)
     }
 
-    fun load() {
+    fun loadDefaults() {
         register("print", mutableMapOf(Pair("message", BuiltinTypeSymbol.STRING))) { args ->
             val message = args["message"]
             if (message is String) {
@@ -34,8 +34,10 @@ object NativeCalls {
                 println(message)
             }
         }
-        register("randInt",
-            mutableMapOf(Pair("x", BuiltinTypeSymbol.INTEGER), Pair("y", BuiltinTypeSymbol.INTEGER))) { args ->
+        register(
+            "randInt",
+            mutableMapOf(Pair("x", BuiltinTypeSymbol.INTEGER), Pair("y", BuiltinTypeSymbol.INTEGER))
+        ) { args ->
             val x = args["x"]
             val y = args["y"]
 
@@ -49,7 +51,7 @@ object NativeCalls {
 
     fun register(name: String, params: Map<String, String>, func: (ActivationRecord) -> Any?) {
         symbols[name] =
-            FuncSymbol(name, params.entries.toList().map { VarSymbol(it.key, BuiltinTypeSymbol(it.value)) })
+            FuncSymbol(name, params.entries.toList().map { VarSymbol(it.key, BuiltinTypeSymbol(it.value)) }, this)
         declarations[name] = func
     }
 

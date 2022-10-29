@@ -27,26 +27,28 @@ fun main(args: Array<String>) {
     shouldLogInternalErrors = flags.remove("internal-errors")
 
     if (flags.isNotEmpty()) {
-        println("Unknown flags: ${flags.joinToString(", ")}")
+        logger.error("Unknown flags: ${flags.joinToString(", ")}")
         return
     }
 
     if (arguments.isEmpty()) {
-        println("No arguments provided")
+        logger.error("No arguments provided")
         return
     }
 
     val inputFile = File(arguments[0])
 
     if (!inputFile.exists()) {
-        println("File not found: ${inputFile.absolutePath}")
+        logger.error("File not found: ${inputFile.absolutePath}")
         return
     }
 
     val text = inputFile.readText()
 
-    NativeCalls.load()
-
+    //************************//
+    //     Execute script     //
+    //************************//
+    val calls = NativeCalls().also { it.loadDefaults() }
     val lexer = Lexer(text)
     val tree: Program
     try {
@@ -54,11 +56,11 @@ fun main(args: Array<String>) {
         tree = parser.parse()
     } catch (e: LexerException) {
         if (shouldLogInternalErrors) e.printStackTrace()
-        printerr(e.message)
+        logger.error(e.message)
         exitProcess(1)
     } catch (e: ParserException) {
         if (shouldLogInternalErrors) e.printStackTrace()
-        printerr(e.message)
+        logger.error(e.message)
         exitProcess(1)
     } catch (e: InvocationTargetException) {
         var cause = e.cause
@@ -68,13 +70,13 @@ fun main(args: Array<String>) {
         when (cause) {
             is LexerException -> {
                 if (shouldLogInternalErrors) cause.printStackTrace()
-                println(cause.message)
+                logger.error(cause.message)
                 exitProcess(1)
             }
 
             is ParserException -> {
                 if (shouldLogInternalErrors) cause.printStackTrace()
-                println(cause.message)
+                logger.error(cause.message)
                 exitProcess(1)
             }
 
@@ -84,13 +86,13 @@ fun main(args: Array<String>) {
         }
     }
 
-    val semanticAnalyzer = SemanticAnalyzer()
+    val semanticAnalyzer = SemanticAnalyzer(calls = calls)
 
     try {
         semanticAnalyzer.visit(tree)
     } catch (e: SemanticException) {
         e.printStackTrace()
-        println(e.message)
+        logger.error(e.message)
         exitProcess(1)
     } catch (e: InvocationTargetException) {
         var cause = e.cause
@@ -99,7 +101,7 @@ fun main(args: Array<String>) {
         }
         if (cause is SemanticException) {
             cause.printStackTrace()
-            println(cause.message)
+            logger.error(cause.message)
             exitProcess(1)
         } else {
             throw e
@@ -110,6 +112,7 @@ fun main(args: Array<String>) {
     interpreter.interpret()
 }
 
-fun printerr(message: String?) {
-    System.err.println(message)
+@Deprecated("Replaced", ReplaceWith("logger.error(message)"))
+fun printErr(message: String?) {
+    logger.error(message)
 }

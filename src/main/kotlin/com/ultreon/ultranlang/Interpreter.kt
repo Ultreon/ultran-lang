@@ -11,7 +11,7 @@ class Interpreter(val tree: Program?) : NodeVisitor() {
     
     fun log(msg: Any?) {
         if (shouldLogStack) {
-            println(msg)
+            logger.debug(msg)
         }
     }
     

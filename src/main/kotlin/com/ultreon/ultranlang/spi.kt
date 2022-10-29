@@ -1,6 +1,8 @@
 package com.ultreon.ultranlang
 
+import com.google.gson.Gson
 import com.ultreon.ultranlang.token.TokenType
+import java.lang.System.err
 import kotlin.properties.Delegates
 
 /**
@@ -39,3 +41,25 @@ var shouldLogScope by Delegates.notNull<Boolean>()
 var shouldLogStack by Delegates.notNull<Boolean>()
 var shouldLogTokens by Delegates.notNull<Boolean>()
 var shouldLogInternalErrors by Delegates.notNull<Boolean>()
+
+var logger = object : ILogger {
+    override fun error(msg: Any?) {
+        err.println(msg.toString())
+    }
+
+    override fun warn(msg: Any?) {
+        err.println(msg.toString())
+    }
+
+    override fun info(msg: Any?) {
+        println(msg.toString())
+    }
+
+    override fun debug(msg: Any?) {
+        println(msg.toString())
+    }
+}
+
+@Suppress("unused")
+val productJson: ProductJson =
+    Gson().fromJson(Script::class.java.getResourceAsStream("/product.json")!!.reader(), ProductJson::class.java)

@@ -4,10 +4,10 @@ import com.ultreon.ultranlang.ActivationRecord
 import com.ultreon.ultranlang.ast.AST
 import com.ultreon.ultranlang.func.NativeCalls
 
-class FuncSymbol(name: String, formalParams: List<VarSymbol>? = null) : Symbol(name) {
+class FuncSymbol(name: String, formalParams: List<VarSymbol>? = null, private val calls: NativeCalls) : Symbol(name) {
     val isNative: Boolean
         get() {
-            return NativeCalls.exists(name)
+            return calls.exists(name)
         }
     lateinit var statements: List<AST>
     val formalParams: MutableList<VarSymbol> = formalParams?.toMutableList() ?: mutableListOf()
@@ -18,6 +18,6 @@ class FuncSymbol(name: String, formalParams: List<VarSymbol>? = null) : Symbol(n
 
     fun representation(): String = toString()
     fun callNative(ar: ActivationRecord): Any? {
-        return NativeCalls.nativeCall(this, formalParams, ar)
+        return calls.nativeCall(this, formalParams, ar)
     }
 }
