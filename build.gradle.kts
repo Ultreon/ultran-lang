@@ -37,6 +37,10 @@ tasks.withType<KotlinCompile> {
     kotlinOptions.jvmTarget = "1.8"
 }
 
+java {
+    withSourcesJar()
+}
+
 tasks.processResources {
     inputs.dir("src/main/resources")
 
