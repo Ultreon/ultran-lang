@@ -1,6 +1,7 @@
 package com.ultreon.ultranlang.func
 
 import com.ultreon.ultranlang.ActivationRecord
+import com.ultreon.ultranlang.params
 import com.ultreon.ultranlang.symbol.BuiltinTypeSymbol
 import com.ultreon.ultranlang.symbol.FuncSymbol
 import com.ultreon.ultranlang.symbol.VarSymbol
@@ -26,7 +27,7 @@ class NativeCalls {
     }
 
     fun loadDefaults() {
-        register("print", mutableMapOf(Pair("message", BuiltinTypeSymbol.STRING))) { args ->
+        register("print", params().add("message", BuiltinTypeSymbol.STRING)) { args ->
             val message = args["message"]
             if (message is String) {
                 println(message)
@@ -36,7 +37,7 @@ class NativeCalls {
         }
         register(
             "randInt",
-            mutableMapOf(Pair("x", BuiltinTypeSymbol.INTEGER), Pair("y", BuiltinTypeSymbol.INTEGER))
+            params().add("x", BuiltinTypeSymbol.INTEGER).add("y", BuiltinTypeSymbol.INTEGER)
         ) { args ->
             val x = args["x"]
             val y = args["y"]
