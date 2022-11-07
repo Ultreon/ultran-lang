@@ -45,7 +45,7 @@ class Parser(val lexer: Lexer) {
     fun program(): Program {
         eat(TokenType.PROGRAM)
         val varNode = variable()
-        if (varNode is Var) {
+        if (varNode is VarRef) {
             val progName = varNode.value as String
             eat(TokenType.SEMI)
             val nodes = statementList()
@@ -107,7 +107,7 @@ class Parser(val lexer: Lexer) {
         val typeNode = typeSpec()
 
         for (paramToken in paramTokens) {
-            paramNodes.add(Param(Var(paramToken), typeNode))
+            paramNodes.add(Param(VarRef(paramToken), typeNode))
         }
 
         return paramNodes
@@ -135,12 +135,12 @@ class Parser(val lexer: Lexer) {
      * variable_declaration : ID (COMMA ID)* COLON type_spec
      */
     fun variableDeclarations(): List<VarDecl> {
-        val varNodes = mutableListOf(Var(currentToken))
+        val varRefNodes = mutableListOf(VarRef(currentToken))
         eat(TokenType.ID)
 
         while (currentToken.type == TokenType.COMMA) {
             eat(TokenType.COMMA)
-            varNodes.add(Var(currentToken))
+            varRefNodes.add(VarRef(currentToken))
             eat(TokenType.ID)
         }
 
@@ -148,7 +148,7 @@ class Parser(val lexer: Lexer) {
 
         val typeNode = typeSpec()
         val varDeclarations = mutableListOf<VarDecl>()
-        for (varNode in varNodes) {
+        for (varNode in varRefNodes) {
             varDeclarations.add(VarDecl(varNode, typeNode))
         }
 
@@ -159,13 +159,13 @@ class Parser(val lexer: Lexer) {
      * variable_declaration : ID (COMMA ID)* COLON type_spec
      */
     fun variableDeclaration(): VarDecl {
-        val varNode = Var(currentToken)
+        val varRefNode = VarRef(currentToken)
         eat(TokenType.ID)
 
         eat(TokenType.COLON)
 
         val typeNode = typeSpec()
-        val varDeclaration = VarDecl(varNode, typeNode)
+        val varDeclaration = VarDecl(varRefNode, typeNode)
 
         return varDeclaration
     }
@@ -280,12 +280,19 @@ class Parser(val lexer: Lexer) {
         } else if (currentToken.type == TokenType.FUNCTION) {
 //            eat(TokenType.VAR)
             funcDeclaration()
+        } else if (currentToken.type == TokenType.CLASS) {
+//            eat(TokenType.VAR)
+            classDeclaration()
         } else {
             empty()
         }
         logger.debug("Finished statement ($hash) at ${currentToken.line}:${currentToken.column}")
         logger.debug("Statement: currentToken = $currentToken")
         return node
+    }
+
+    fun classDeclaration(): ClassDeclaration {
+
     }
 
     /**
@@ -319,7 +326,7 @@ class Parser(val lexer: Lexer) {
      */
     fun assignmentStatement(): Assign {
         val left = variable()
-        if (left is Var) {
+        if (left is VarRef) {
             val token = currentToken
             eat(TokenType.ASSIGN)
             val right = expr()
@@ -333,7 +340,7 @@ class Parser(val lexer: Lexer) {
      * variable : ID
      */
     fun variable(): AST {
-        val node = Var(currentToken)
+        val node = VarRef(currentToken)
         val pos = lexer.prevPos
         eat(TokenType.ID)
 

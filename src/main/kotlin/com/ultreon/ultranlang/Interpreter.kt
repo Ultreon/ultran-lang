@@ -104,8 +104,8 @@ class Interpreter(val tree: Program?) : NodeVisitor() {
         return null
     }
 
-    @Visit(Var::class)
-    fun visitVar(node: Var): Any? {
+    @Visit(VarRef::class)
+    fun visitVarRef(node: VarRef): Any? {
         val varName = node.value as String
 
         val ar = callStack.peek()
@@ -122,14 +122,25 @@ class Interpreter(val tree: Program?) : NodeVisitor() {
         // do nothing
     }
 
+    @Visit(ClassDeclaration::class)
+    fun visitClassDecl(node: ClassDeclaration) {
+        for (classMemberDecl in node.memberDecl) {
+            if (classMemberDecl is StaticInitDecl) {
+                for (statement in classMemberDecl.statements) {
+                    this.visit(statement)
+                }
+            }
+        }
+    }
+
     @Visit(FuncCall::class)
-    fun visitProcedureCall(node: FuncCall): Any? {
-        val procName = node.procName
-        val procSymbol = node.procSymbol
+    fun visitFuncCall(node: FuncCall): Any? {
+        val funcName = node.funcName
+        val funcSymbol = node.funcSymbol
 
-        val ar = ActivationRecord(procName, ARType.PROCEDURE, procSymbol!!.scopeLevel + 1)
+        val ar = ActivationRecord(funcName, ARType.PROCEDURE, funcSymbol!!.scopeLevel + 1)
 
-        val formalParams = procSymbol.formalParams
+        val formalParams = funcSymbol.formalParams
         val actualParams = node.actualParams
 
         for ((paramSymbol, argumentNode) in formalParams.zip(actualParams)) {
@@ -138,26 +149,26 @@ class Interpreter(val tree: Program?) : NodeVisitor() {
 
         this.callStack.push(ar)
 
-        this.log("ENTER: PROCEDURE $procName")
+        this.log("ENTER: FUNCTION $funcName")
         this.log(this.callStack.toString())
 
         // evaluate procedure body
         val value: Any?
 
-        if (procSymbol.isNative) {
-            var returned = procSymbol.callNative(ar)
+        if (funcSymbol.isNative) {
+            var returned = funcSymbol.callNative(ar)
             if (returned == Unit) {
                 returned = null
             }
             value = returned
         } else {
-            for (statement in procSymbol.statements) {
+            for (statement in funcSymbol.statements) {
                 this.visit(statement)
             }
             value = null
         }
 
-        this.log("LEAVE: PROCEDURE $procName")
+        this.log("LEAVE: FUNCTION $funcName")
         this.log(this.callStack.toString())
 
         this.callStack.pop()

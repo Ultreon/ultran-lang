@@ -2,16 +2,19 @@ package com.ultreon.ultranlang
 
 import com.ultreon.ultranlang.annotations.Visit
 import com.ultreon.ultranlang.ast.*
+import com.ultreon.ultranlang.classes.ScriptClasses
 import com.ultreon.ultranlang.error.ErrorCode
 import com.ultreon.ultranlang.error.SemanticException
 import com.ultreon.ultranlang.func.NativeCalls
+import com.ultreon.ultranlang.symbol.ClassSymbol
 import com.ultreon.ultranlang.symbol.FuncSymbol
 import com.ultreon.ultranlang.symbol.VarSymbol
 import com.ultreon.ultranlang.token.Token
 import java.util.*
 
 class SemanticAnalyzer(
-    private val calls: NativeCalls
+    private val calls: NativeCalls,
+    private val classes: ScriptClasses
 ) : NodeVisitor() {
     var currentScope: ScopedSymbolTable? = null
 
@@ -71,9 +74,45 @@ class SemanticAnalyzer(
     }
 
     @Visit(FuncDeclaration::class)
-    fun visitProcedureDecl(node: FuncDeclaration) {
-        val procName = node.procName
-        val procSymbol = FuncSymbol(procName, calls = calls)
+    fun visitFuncDecl(node: FuncDeclaration) {
+        val funcName = node.funcName
+        val funcSymbol = FuncSymbol(funcName, calls = calls)
+
+        this.currentScope!!.insert(funcSymbol)
+
+        log("ENTER scope: $funcName")
+
+        // Scope for parameters and local variables
+        val procedureScope = ScopedSymbolTable(funcName, this.currentScope!!.scopeLevel + 1, this.currentScope, calls)
+
+        this.currentScope = procedureScope
+
+        // Insert parameters into the procedure scope
+        for (param in node.formalParams) {
+            val paramType = this.currentScope!!.lookup(param.typeNode.value as String)
+            val paramName = param.varRefNode.value as String
+            val varSymbol = VarSymbol(paramName, paramType)
+            this.currentScope!!.insert(varSymbol)
+            funcSymbol.formalParams.add(varSymbol)
+        }
+
+        for (statement in node.statements) {
+            this.visit(statement)
+        }
+
+        this.log(procedureScope)
+
+        this.currentScope = this.currentScope?.enclosingScope
+        this.log("LEAVE scope: $funcName")
+
+        // accessed by the interpreter when executing the procedure call
+        funcSymbol.statements = node.statements
+    }
+
+    @Visit(ClassDeclaration::class)
+    fun visitClassDecl(node: ClassDeclaration) {
+        val procName = node.className
+        val procSymbol = ClassSymbol(procName, classes = classes)
 
         this.currentScope!!.insert(procSymbol)
 
@@ -85,7 +124,7 @@ class SemanticAnalyzer(
         this.currentScope = procedureScope
 
         // Insert parameters into the procedure scope
-        for (param in node.formalParams) {
+        for (param in node.memberDecl) {
             val paramType = this.currentScope!!.lookup(param.typeNode.value as String)
             val paramName = param.varNode.value as String
             val varSymbol = VarSymbol(paramName, paramType)
@@ -113,13 +152,13 @@ class SemanticAnalyzer(
 
         // We have all the information we need to create a variable symbol.
         // Create the symbol and insert it into the symbol table.
-        val varName = node.varNode.value as String
+        val varName = node.varRefNode.value as String
         val varSymbol = VarSymbol(varName, typeSymbol)
 
         // Signal on error if the table already has a symbol
         // with the same name
         if (this.currentScope!!.lookup(varName, currentScopeOnly = true) != null) {
-            this.error(ErrorCode.DUPLICATE_ID, node.varNode.token)
+            this.error(ErrorCode.DUPLICATE_ID, node.varRefNode.token)
         }
 
         this.currentScope!!.insert(varSymbol)
@@ -133,8 +172,8 @@ class SemanticAnalyzer(
         this.visit(node.left)
     }
 
-    @Visit(Var::class)
-    fun visitVar(node: Var) {
+    @Visit(VarRef::class)
+    fun visitVar(node: VarRef) {
         val varName = node.value as String
         val varSymbol = this.currentScope!!.lookup(varName)
 
@@ -159,8 +198,8 @@ class SemanticAnalyzer(
             this.visit(paramNode)
         }
 
-        val procSymbol = this.currentScope!!.lookup(node.procName) as FuncSymbol
+        val procSymbol = this.currentScope!!.lookup(node.funcName) as FuncSymbol
         // accessed by the interpreter when executing the procedure call
-        node.procSymbol = procSymbol
+        node.funcSymbol = procSymbol
     }
 }

@@ -45,7 +45,11 @@ class TokenType(val value: String) {
         val FALSE = TokenType("FALSE")
         val INTEGER_DIV = TokenType("DIV")
         val VAR = TokenType("VAR")
+        val VAL = TokenType("VAL")
         val FUNCTION = TokenType("FUNCTION")
+        val CLASS = TokenType("CLASS")
+        val CONSTRUCTOR = TokenType("CONSTRUCTOR")
+        val STATIC = TokenType("STATIC")
         val BEGIN = TokenType("BEGIN")
         val END = TokenType("END")
         val RETURN = TokenType("RETURN")
@@ -82,6 +86,9 @@ class TokenType(val value: String) {
                 "INTEGER_DIV" -> INTEGER_DIV
                 "VAR" -> VAR
                 "FUNCTION" -> FUNCTION
+                "CLASS" -> CLASS
+                "CONSTRUCTOR" -> CONSTRUCTOR
+                "STATIC" -> STATIC
                 "BEGIN" -> BEGIN
                 "END" -> END
                 "ID" -> ID
