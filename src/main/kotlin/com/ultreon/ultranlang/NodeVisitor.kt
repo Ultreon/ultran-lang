@@ -1,11 +1,11 @@
 package com.ultreon.ultranlang
 
 import com.ultreon.ultranlang.annotations.Visit
-import com.ultreon.ultranlang.ast.AST
+import com.ultreon.ultranlang.ast.LangObj
 import java.lang.IllegalStateException
 
 open class NodeVisitor {
-    fun visit(node: AST): Any? {
+    fun visit(node: LangObj): Any? {
         for (member in this::class.members) {
             for (annotation in member.annotations) {
                 if (annotation is Visit) {

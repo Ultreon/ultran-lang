@@ -9,16 +9,21 @@ import javax.script.ScriptException
 import kotlin.random.Random
 import kotlin.random.nextInt
 
-class NativeCalls {
-    private val symbols = mutableMapOf<String, FuncSymbol>()
-    private val declarations = mutableMapOf<String, (ActivationRecord) -> Any?>()
+class NativeCalls(
+    private val symbols: MutableMap<String, FuncSymbol> = mutableMapOf(),
+    private val declarations: MutableMap<String, (ActivationRecord) -> Any?> = mutableMapOf(),
+    val parent: NativeCalls? = null
+) {
 
     fun nativeCall(func: FuncSymbol, args: List<VarSymbol>, ar: ActivationRecord): Any? {
-        val procName = func.name
-        if (declarations.containsKey(procName)) {
-            return declarations[procName]!!(ar)
+        val funcName = func.name
+
+        if (declarations.containsKey(funcName)) {
+            return declarations[funcName]!!(ar)
         } else {
-            throw IllegalArgumentException("Native procedure $procName not found")
+            if (parent != null) return parent.nativeCall(func, args, ar)
+
+            throw IllegalArgumentException("Native procedure $funcName not found")
         }
     }
 

@@ -1,5 +1,5 @@
 package com.ultreon.ultranlang.ast
 
-class Compound : AST() {
-    val children = arrayListOf<AST>()
+class Compound : LangObj() {
+    val children = arrayListOf<LangObj>()
 }

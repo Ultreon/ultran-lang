@@ -83,9 +83,9 @@ class SemanticAnalyzer(
         log("ENTER scope: $funcName")
 
         // Scope for parameters and local variables
-        val procedureScope = ScopedSymbolTable(funcName, this.currentScope!!.scopeLevel + 1, this.currentScope, calls)
+        val functionScope = ScopedSymbolTable(funcName, this.currentScope!!.scopeLevel + 1, this.currentScope, calls)
 
-        this.currentScope = procedureScope
+        this.currentScope = functionScope
 
         // Insert parameters into the procedure scope
         for (param in node.formalParams) {
@@ -100,7 +100,7 @@ class SemanticAnalyzer(
             this.visit(statement)
         }
 
-        this.log(procedureScope)
+        this.log(functionScope)
 
         this.currentScope = this.currentScope?.enclosingScope
         this.log("LEAVE scope: $funcName")
@@ -111,38 +111,37 @@ class SemanticAnalyzer(
 
     @Visit(ClassDeclaration::class)
     fun visitClassDecl(node: ClassDeclaration) {
-        val procName = node.className
-        val procSymbol = ClassSymbol(procName, classes = classes)
+        val className = node.className
+        val classSymbol = ClassSymbol(className, classes = classes, parentCalls = calls)
 
-        this.currentScope!!.insert(procSymbol)
+        this.currentScope!!.insert(classSymbol)
 
-        log("ENTER scope: $procName")
+        log("ENTER class: $className")
 
         // Scope for parameters and local variables
-        val procedureScope = ScopedSymbolTable(procName, this.currentScope!!.scopeLevel + 1, this.currentScope, calls)
+        val functionScope = ScopedSymbolTable(className, this.currentScope!!.scopeLevel + 1, this.currentScope, classSymbol.calls)
 
-        this.currentScope = procedureScope
+        this.currentScope = functionScope
 
         // Insert parameters into the procedure scope
-        for (param in node.memberDecl) {
-            val paramType = this.currentScope!!.lookup(param.typeNode.value as String)
-            val paramName = param.varNode.value as String
-            val varSymbol = VarSymbol(paramName, paramType)
-            this.currentScope!!.insert(varSymbol)
-            procSymbol.formalParams.add(varSymbol)
+        for (member in node.members) {
+            if (member is LangObj) {
+                this.visit(member)
+            } else {
+                throw Error("Class member is not a language object.")
+            }
         }
 
-        for (statement in node.statements) {
-            this.visit(statement)
-        }
-
-        this.log(procedureScope)
+        this.log(functionScope)
 
         this.currentScope = this.currentScope?.enclosingScope
-        this.log("LEAVE scope: $procName")
+        this.log("LEAVE class: $className")
 
         // accessed by the interpreter when executing the procedure call
-        procSymbol.statements = node.statements
+        classSymbol.statements = node.classInit.statements
+        classSymbol.members = node.members
+        classSymbol.fields = node.fields
+        classSymbol.classInit = node.classInit
     }
 
     @Visit(VarDecl::class)
@@ -198,8 +197,8 @@ class SemanticAnalyzer(
             this.visit(paramNode)
         }
 
-        val procSymbol = this.currentScope!!.lookup(node.funcName) as FuncSymbol
+        val funcName = this.currentScope!!.lookup(node.funcName) as FuncSymbol
         // accessed by the interpreter when executing the procedure call
-        node.funcSymbol = procSymbol
+        node.funcSymbol = funcName
     }
 }

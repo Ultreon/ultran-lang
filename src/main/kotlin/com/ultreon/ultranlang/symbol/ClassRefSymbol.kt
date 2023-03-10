@@ -1,7 +1,7 @@
 package com.ultreon.ultranlang.symbol
 
 import com.ultreon.ultranlang.ActivationRecord
-import com.ultreon.ultranlang.ast.AST
+import com.ultreon.ultranlang.ast.LangObj
 import com.ultreon.ultranlang.classes.ScriptObject
 import com.ultreon.ultranlang.classes.ClassRef
 import com.ultreon.ultranlang.classes.ScriptClasses
@@ -11,7 +11,7 @@ class ClassRefSymbol(name: String, formalParams: List<VarSymbol>? = null, privat
         get() {
             return classes.exists(name)
         }
-    lateinit var statements: List<AST>
+    lateinit var statements: List<LangObj>
     val formalParams: MutableList<VarSymbol> = formalParams?.toMutableList() ?: mutableListOf()
 
     override fun toString(): String {
@@ -20,9 +20,10 @@ class ClassRefSymbol(name: String, formalParams: List<VarSymbol>? = null, privat
 
     fun representation(): String = toString()
     fun callNative(ar: ActivationRecord): ScriptObject {
-        return classes.getRef(name)
+        val scriptClass = classes[name] ?: throw IllegalArgumentException("Class Not Found: ")
+        return scriptClass.newInstance(formalParams)
     }
-    fun getRef(ar: ActivationRecord): ClassRef {
+    fun getRef(ar: ActivationRecord): ClassRef? {
         return classes.getRef(name)
     }
 }

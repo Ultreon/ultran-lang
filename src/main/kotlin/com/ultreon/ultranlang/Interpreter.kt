@@ -124,8 +124,8 @@ class Interpreter(val tree: Program?) : NodeVisitor() {
 
     @Visit(ClassDeclaration::class)
     fun visitClassDecl(node: ClassDeclaration) {
-        for (classMemberDecl in node.memberDecl) {
-            if (classMemberDecl is StaticInitDecl) {
+        for (classMemberDecl in node.members) {
+            if (classMemberDecl is ClassInitDecl) {
                 for (statement in classMemberDecl.statements) {
                     this.visit(statement)
                 }

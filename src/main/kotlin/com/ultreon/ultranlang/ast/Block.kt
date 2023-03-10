@@ -1,3 +1,3 @@
 package com.ultreon.ultranlang.ast
 
-class Block(var declarations: List<AST>, var compoundStatement: Compound) : AST()
+class Block(var declarations: List<LangObj>, var compoundStatement: Compound) : LangObj()
