@@ -22,17 +22,19 @@ function PrintHelloWorld() {
     print("Hello World")
 }
 
-class HelloWorldProgram {
-  val name: string
+[ class HelloWorldProgram {
+    val name: string
 
-  constructor(name: string) {
-    this.name = name;
-  }
+    constructor(name: string) {
+        this.name = name
+    }
 
-  function print() {
-    print("Hello " + name);
-  }
+    function print() {
+        print("Hello " + name)
+    }
 }
+
+HelloWorldProgram("Qboi").print() ]
 
 PrintHelloWorld()
 
