@@ -25,6 +25,15 @@ class Parser(val lexer: Lexer) {
             "${errorCode.value} at ${got.line}:${got.column} -> ${got.type?.value} expected ${expected.value}")
     }
 
+    fun eatNewline() {
+        val type = currentToken.type
+        println("Current Token: ${currentToken.type}")
+        if (type?.isNewline == true) {
+            eat(type)
+        } else {
+            error(ErrorCode.UNEXPECTED_STATEMENT_END, currentToken)
+        }
+    }
     fun eat(tokenType: TokenType) {
         // compare the current token type with the passed token
         // type and if they match then "eat" the current token
@@ -48,7 +57,7 @@ class Parser(val lexer: Lexer) {
         val varNode = variable()
         if (varNode is VarRef) {
             val programName = varNode.value as String
-            eat(TokenType.SEMI)
+            eatNewline()
             val nodes = statementList()
             val programNode = Program(programName)
             programNode.statements += nodes
@@ -79,7 +88,7 @@ class Parser(val lexer: Lexer) {
             while (currentToken.type == TokenType.ID) {
                 val varDeclaration = variableDeclarations()
                 declarations.addAll(varDeclaration)
-                eat(TokenType.SEMI)
+                eatNewline()
             }
         }
         while (currentToken.type == TokenType.FUNCTION) {
@@ -124,8 +133,8 @@ class Parser(val lexer: Lexer) {
 
         val paramNodes = mutableListOf<Param>()
         paramNodes.addAll(formalParameters())
-        while (currentToken.type == TokenType.SEMI) {
-            eat(TokenType.SEMI)
+        while (currentToken.type?.isNewline == true) {
+            eatNewline()
             paramNodes.addAll(formalParameters())
         }
         return paramNodes
@@ -326,8 +335,8 @@ class Parser(val lexer: Lexer) {
 
         val results = mutableListOf(node)
 
-        while (currentToken.type == TokenType.SEMI) {
-            eat(TokenType.SEMI)
+        while (currentToken.type?.isNewline == true) {
+            eatNewline()
             results.add(statement())
             logger.debug("Expect SEMI: currentToken = $currentToken")
         }
