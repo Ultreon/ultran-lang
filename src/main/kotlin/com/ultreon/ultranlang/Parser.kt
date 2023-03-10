@@ -503,24 +503,26 @@ class Parser(val lexer: Lexer) {
     /**
      * variable : ID
      */
-    tailrec fun variable(): Returnable {
-        val node = VarRef(currentToken)
+    tailrec fun variable(parent: Returnable? = null): Returnable {
+        var node: Returnable = VarRef(currentToken)
         val pos = lexer.prevPos
+        parent?.let {
+            it.child = node
+        }
         eat(TokenType.ID)
 
         if (currentToken.type == TokenType.LPAREN) {
             lexer.pos = pos
             currentToken = getNextToken()
-            return funcCallStatement()
+            node = funcCallStatement()
         }
 
-
-        if (currentToken.type == TokenType.DOT) {
+        return if (currentToken.type != TokenType.DOT) {
+            node
+        } else {
             eat(TokenType.DOT)
-            node.child = variable()
-            TODO("Fix Tail Record")
+            variable(node)
         }
-        return node
     }
 
     /**
@@ -614,7 +616,7 @@ class Parser(val lexer: Lexer) {
             }
 
             else -> {
-                return variable()
+                return variable() as LangObj
             }
         }
     }
