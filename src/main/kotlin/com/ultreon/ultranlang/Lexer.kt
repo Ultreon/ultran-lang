@@ -3,6 +3,7 @@ package com.ultreon.ultranlang
 import com.ultreon.ultranlang.error.LexerException
 import com.ultreon.ultranlang.token.Token
 import com.ultreon.ultranlang.token.TokenType
+import java.lang.RuntimeException
 
 class Lexer(private val text: String) {
     var prevPos: Int = -1
@@ -34,9 +35,7 @@ class Lexer(private val text: String) {
 
         pos++
         if (pos >= text.length) {
-//            currentChar = null
         } else {
-//            currentChar = text[pos]
             column++
         }
     }
@@ -51,7 +50,7 @@ class Lexer(private val text: String) {
     }
 
     fun skipWhitespace() {
-        while (currentChar != null && currentChar!!.isWhitespace()) {
+        while (currentChar != null && currentChar!!.isWhitespace() && currentChar != '\n') {
             advance()
         }
     }
@@ -144,10 +143,10 @@ class Lexer(private val text: String) {
         val token = Token(null, null, lineno, column)
 
         var value = ""
-        while (currentChar != null && currentChar!!.isLetterOrDigit()) {
+        do {
             value += currentChar!!
             advance()
-        }
+        } while (currentChar != null && currentChar!!.isLetterOrDigit() && !currentChar!!.isWhitespace())
 
         val tokenType = reservedKeywords[value.uppercase()]
         if (tokenType == null) {
@@ -170,7 +169,7 @@ class Lexer(private val text: String) {
     fun getNextToken(): Token {
         prevPos = pos
         while (currentChar != null) {
-            if (currentChar!!.isWhitespace()) {
+            if (currentChar!!.isWhitespace() && currentChar != '\n') {
                 skipWhitespace()
                 continue
             }

@@ -16,6 +16,8 @@ class TokenType(val value: String) {
         return true
     }
 
+    val isNewline: Boolean get() = this == SEMI || this == NEW_LINE
+
     override fun hashCode(): Int {
         return value.hashCode()
     }
@@ -34,6 +36,7 @@ class TokenType(val value: String) {
         val DOT = TokenType(".")
         val COLON = TokenType(":")
         val COMMA = TokenType(",")
+        val NEW_LINE = TokenType("\n")
 
         // block of reserved words
         val PROGRAM = TokenType("PROGRAM")
@@ -59,7 +62,7 @@ class TokenType(val value: String) {
         val EOF = TokenType("EOF")
 
         fun values(): Array<TokenType> {
-            return arrayOf(PLUS, MINUS, MUL, FLOAT_DIV, LPAREN, RPAREN, LCURL, RCURL, SEMI, DOT, COLON, COMMA, PROGRAM,
+            return arrayOf(PLUS, MINUS, MUL, FLOAT_DIV, LPAREN, RPAREN, LCURL, RCURL, SEMI, NEW_LINE, DOT, COLON, COMMA, PROGRAM,
                 INTEGER, REAL,
                 INTEGER_DIV, VAR, FUNCTION, BEGIN, END, ID, INTEGER_CONST, STRING_CONST, REAL_CONST, ASSIGN, EOF)
         }
@@ -73,6 +76,7 @@ class TokenType(val value: String) {
                 "LPAREN" -> LPAREN
                 "RPAREN" -> RPAREN
                 "SEMI" -> SEMI
+                "NEW_LINE" -> NEW_LINE
                 "DOT" -> DOT
                 "COLON" -> COLON
                 "COMMA" -> COMMA

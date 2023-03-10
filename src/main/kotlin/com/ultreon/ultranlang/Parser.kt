@@ -24,6 +24,15 @@ class Parser(val lexer: Lexer) {
             "${errorCode.value} at ${got.line}:${got.column} -> ${got.type?.value} expected ${expected.value}")
     }
 
+    fun eatNewline() {
+        val type = currentToken.type
+        println("Current Token: ${currentToken.type}")
+        if (type?.isNewline == true) {
+            eat(type)
+        } else {
+            error(ErrorCode.UNEXPECTED_STATEMENT_END, currentToken)
+        }
+    }
     fun eat(tokenType: TokenType) {
         // compare the current token type with the passed token
         // type and if they match then "eat" the current token
@@ -46,10 +55,10 @@ class Parser(val lexer: Lexer) {
         eat(TokenType.PROGRAM)
         val varNode = variable()
         if (varNode is Var) {
-            val progName = varNode.value as String
-            eat(TokenType.SEMI)
+            val programName = varNode.value as String
+            eatNewline()
             val nodes = statementList()
-            val programNode = Program(progName)
+            val programNode = Program(programName)
             programNode.statements += nodes
             eat(TokenType.EOF)
             return programNode
@@ -64,8 +73,7 @@ class Parser(val lexer: Lexer) {
     fun block(): Block {
         val declarationNodes = declarations()
         val compoundStatementNode = compoundStatement()
-        val node = Block(declarationNodes, compoundStatementNode)
-        return node
+        return Block(declarationNodes, compoundStatementNode)
     }
 
 
@@ -79,12 +87,12 @@ class Parser(val lexer: Lexer) {
             while (currentToken.type == TokenType.ID) {
                 val varDeclaration = variableDeclarations()
                 declarations.addAll(varDeclaration)
-                eat(TokenType.SEMI)
+                eatNewline()
             }
         }
         while (currentToken.type == TokenType.FUNCTION) {
-            val procDeclaration = funcDeclaration()
-            declarations.add(procDeclaration)
+            val funcDeclaration = funcDeclaration()
+            declarations.add(funcDeclaration)
         }
         return declarations
     }
@@ -124,8 +132,8 @@ class Parser(val lexer: Lexer) {
 
         val paramNodes = mutableListOf<Param>()
         paramNodes.addAll(formalParameters())
-        while (currentToken.type == TokenType.SEMI) {
-            eat(TokenType.SEMI)
+        while (currentToken.type?.isNewline == true) {
+            eatNewline()
             paramNodes.addAll(formalParameters())
         }
         return paramNodes
@@ -248,8 +256,8 @@ class Parser(val lexer: Lexer) {
 
         val results = mutableListOf<AST>(node)
 
-        while (currentToken.type == TokenType.SEMI) {
-            eat(TokenType.SEMI)
+        while (currentToken.type?.isNewline == true) {
+            eatNewline()
             results.add(statement())
             logger.debug("Expect SEMI: currentToken = $currentToken")
         }
@@ -261,7 +269,7 @@ class Parser(val lexer: Lexer) {
 
     /**
      * statement : compound_statement
-     *           | proccall_statement
+     *           | func_call_statement
      *           | assignment_statement
      *           | empty
      */
@@ -289,12 +297,12 @@ class Parser(val lexer: Lexer) {
     }
 
     /**
-     * proccall_statement : ID LPAREN (expr (COMMA expr)*)? RPAREN
+     * func_call_statement : ID LPAREN (expr (COMMA expr)*)? RPAREN
      */
     fun funcCallStatement(): FuncCall {
         val token = currentToken
 
-        val procName = currentToken.value as String
+        val functionName = currentToken.value as String
 
         eat(TokenType.ID)
         eat(TokenType.LPAREN)
@@ -311,7 +319,7 @@ class Parser(val lexer: Lexer) {
 
         eat(TokenType.RPAREN)
 
-        return FuncCall(procName, actualParams, token)
+        return FuncCall(functionName, actualParams, token)
     }
 
     /**
@@ -419,8 +427,8 @@ class Parser(val lexer: Lexer) {
             }
 
             TokenType.STRING_CONST -> {
-                eat(TokenType.INTEGER_CONST)
-                return Num(token)
+                eat(TokenType.STRING_CONST)
+                return String(token)
             }
 
             TokenType.REAL_CONST -> {
@@ -467,11 +475,11 @@ class Parser(val lexer: Lexer) {
      *                | statement SEMI statement_list
      *
      * statement : compound_statement
-     *           | proccall_statement
+     *           | func_call_statement
      *           | assignment_statement
      *           | empty
      *
-     * proccall_statement : ID LPAREN (expr (COMMA expr)*)? RPAREN
+     * func_call_statement : ID LPAREN (expr (COMMA expr)*)? RPAREN
      *
      * assignment_statement : variable ASSIGN expr
      *
