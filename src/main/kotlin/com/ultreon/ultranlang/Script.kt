@@ -1,7 +1,7 @@
 package com.ultreon.ultranlang
 
 import com.ultreon.ultranlang.ast.Program
-import com.ultreon.ultranlang.classes.ScriptClasses
+import com.ultreon.ultranlang.classes.ULClasses
 import com.ultreon.ultranlang.error.LexerException
 import com.ultreon.ultranlang.error.ParserException
 import com.ultreon.ultranlang.error.SemanticException
@@ -15,7 +15,7 @@ import kotlin.system.exitProcess
 @Suppress("unused")
 class Script(val code: String) {
     val calls: NativeCalls = NativeCalls()
-    val classes: ScriptClasses = ScriptClasses()
+    val classes: ULClasses = ULClasses()
 
     constructor(file: File) : this(file.readText())
     constructor(stream: InputStream) : this(stream.reader())

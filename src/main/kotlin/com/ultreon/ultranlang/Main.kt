@@ -1,7 +1,7 @@
 package com.ultreon.ultranlang
 
 import com.ultreon.ultranlang.ast.Program
-import com.ultreon.ultranlang.classes.ScriptClasses
+import com.ultreon.ultranlang.classes.ULClasses
 import com.ultreon.ultranlang.error.LexerException
 import com.ultreon.ultranlang.error.ParserException
 import com.ultreon.ultranlang.error.SemanticException
@@ -50,7 +50,7 @@ fun main(args: Array<String>) {
     //     Execute script     //
     //************************//
     val calls = NativeCalls().also { it.loadDefaults() }
-    val classes = ScriptClasses().also { it.loadDefaults() }
+    val classes = ULClasses().also { it.loadDefaults() }
     val lexer = Lexer(text)
     val tree: Program
     try {

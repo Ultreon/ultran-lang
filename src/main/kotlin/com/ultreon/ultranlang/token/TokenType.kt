@@ -3,7 +3,11 @@ package com.ultreon.ultranlang.token
 @Suppress("SpellCheckingInspection")
 class TokenType(val value: String) {
     override fun toString(): String {
-        return value
+        return when(value) {
+            "\n" -> "\\n"
+            "\t" -> "\\t"
+            else -> value
+        }
     }
 
     override fun equals(other: Any?): Boolean {
@@ -16,7 +20,31 @@ class TokenType(val value: String) {
         return true
     }
 
+    fun repr(): String {
+        val string = value.replace('_', ' ')
+        if (string.length == 1) {
+            return when (string) {
+                "\n" -> {
+                    "NEW LINE"
+                }
+
+                "\t" -> {
+                    "TAB"
+                }
+
+                "\b" -> {
+                    "BACKSPACE"
+                }
+
+                else -> string.repr()
+            }
+        }
+        return string
+    }
+
     val isNewline: Boolean get() = this == SEMI || this == NEW_LINE
+
+    val isSpace: Boolean get() = this == NEW_LINE
 
     override fun hashCode(): Int {
         return value.hashCode()
@@ -51,6 +79,7 @@ class TokenType(val value: String) {
         val VAL = TokenType("VAL")
         val FUNCTION = TokenType("FUNCTION")
         val CLASS = TokenType("CLASS")
+        val THIS = TokenType("THIS")
         val CONSTRUCTOR = TokenType("CONSTRUCTOR")
         val STATIC = TokenType("STATIC")
         val BEGIN = TokenType("BEGIN")
@@ -67,8 +96,8 @@ class TokenType(val value: String) {
 
         fun values(): Array<TokenType> {
             return arrayOf(PLUS, MINUS, MUL, FLOAT_DIV, LPAREN, RPAREN, LCURL, RCURL, SEMI, NEW_LINE, DOT, COLON, COMMA, PROGRAM,
-                INTEGER, REAL,
-                INTEGER_DIV, VAR, FUNCTION, BEGIN, END, ID, INTEGER_CONST, STRING_CONST, REAL_CONST, ASSIGN, EOF)
+                INTEGER, STRING, REAL,
+                INTEGER_DIV, VAL, VAR, FUNCTION, CLASS, THIS, CONSTRUCTOR, STATIC, BEGIN, END, ID, INTEGER_CONST, STRING_CONST, REAL_CONST, ASSIGN, EOF)
         }
 
         fun valueOf(value: String): TokenType {

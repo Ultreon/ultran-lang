@@ -2,6 +2,7 @@ package com.ultreon.ultranlang
 
 import com.ultreon.ultranlang.annotations.Visit
 import com.ultreon.ultranlang.ast.*
+import com.ultreon.ultranlang.classes.ULObject
 import com.ultreon.ultranlang.token.TokenType
 import java.math.BigDecimal
 import java.math.BigInteger
@@ -109,7 +110,12 @@ class Interpreter(val tree: Program?) : NodeVisitor() {
         val varName = node.value as String
 
         val ar = callStack.peek()
-        return ar[varName]
+        val obj = ar[varName]
+        if (obj is ULObject) {
+            obj.members
+        }
+
+        return obj
     }
 
     @Visit(NoOp::class)
@@ -124,7 +130,7 @@ class Interpreter(val tree: Program?) : NodeVisitor() {
 
     @Visit(ClassDeclaration::class)
     fun visitClassDecl(node: ClassDeclaration) {
-        for (classMemberDecl in node.members) {
+        for (classMemberDecl in node.instanceMembers) {
             if (classMemberDecl is ClassInitDecl) {
                 for (statement in classMemberDecl.statements) {
                     this.visit(statement)

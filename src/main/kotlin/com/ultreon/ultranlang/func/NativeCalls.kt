@@ -5,6 +5,7 @@ import com.ultreon.ultranlang.params
 import com.ultreon.ultranlang.symbol.BuiltinTypeSymbol
 import com.ultreon.ultranlang.symbol.FuncSymbol
 import com.ultreon.ultranlang.symbol.VarSymbol
+import java.util.Scanner
 import javax.script.ScriptException
 import kotlin.random.Random
 import kotlin.random.nextInt
@@ -14,6 +15,8 @@ class NativeCalls(
     private val declarations: MutableMap<String, (ActivationRecord) -> Any?> = mutableMapOf(),
     val parent: NativeCalls? = null
 ) {
+
+    private val scanner: Scanner = Scanner(System.`in`)
 
     fun nativeCall(func: FuncSymbol, args: List<VarSymbol>, ar: ActivationRecord): Any? {
         val funcName = func.name
@@ -32,12 +35,20 @@ class NativeCalls(
     }
 
     fun loadDefaults() {
-        register("print", params().add("message", BuiltinTypeSymbol.STRING)) { args ->
+        register("printLn", params().add("message", BuiltinTypeSymbol.STRING)) { args ->
             val message = args["message"]
             if (message is String) {
                 println(message)
             } else {
                 println(message)
+            }
+        }
+        register("print", params().add("message", BuiltinTypeSymbol.STRING)) { args ->
+            val message = args["message"]
+            if (message is String) {
+                print(message)
+            } else {
+                print(message)
             }
         }
         register(
@@ -53,6 +64,19 @@ class NativeCalls(
                 throw ScriptException("randInt expects two integers")
             }
         }
+        register(
+            "input",
+            params().add("message", BuiltinTypeSymbol.STRING)
+        ) { args ->
+            val message = args["message"]
+
+            if (message is String) {
+                print(message)
+                return@register scanner.nextLine()
+            } else {
+                throw ScriptException("input requires a string")
+            }
+        }
     }
 
     fun register(name: String, params: ParamBuilder, func: (ActivationRecord) -> Any?) {
@@ -60,8 +84,7 @@ class NativeCalls(
     }
 
     fun register(name: String, params: Map<String, String>, func: (ActivationRecord) -> Any?) {
-        symbols[name] =
-            FuncSymbol(name, params.entries.toList().map { VarSymbol(it.key, BuiltinTypeSymbol(it.value)) }, this)
+        symbols[name] = FuncSymbol(name, params.entries.toList().map { VarSymbol(it.key, BuiltinTypeSymbol(it.value), false) }, this)
         declarations[name] = func
     }
 

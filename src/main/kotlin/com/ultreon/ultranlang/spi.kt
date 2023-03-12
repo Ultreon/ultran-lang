@@ -45,19 +45,19 @@ var shouldLogInternalErrors by Delegates.notNull<Boolean>()
 
 var logger = object : ILogger {
     override fun error(msg: Any?) {
-        err.println(msg.toString())
+        err.println("[error] $msg")
     }
 
     override fun warn(msg: Any?) {
-        err.println(msg.toString())
+        err.println("[warn] $msg")
     }
 
     override fun info(msg: Any?) {
-        println(msg.toString())
+        err.println("[info] $msg")
     }
 
     override fun debug(msg: Any?) {
-        println(msg.toString())
+        err.println("[debug] $msg")
     }
 }
 

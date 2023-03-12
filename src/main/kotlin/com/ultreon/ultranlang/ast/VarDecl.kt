@@ -1,3 +1,7 @@
 package com.ultreon.ultranlang.ast
 
-class VarDecl(var varRefNode: VarRef, var typeNode: Type) : LangObj(), ClassMemberDecl, FieldDecl
+import com.ultreon.ultranlang.symbol.ClassSymbol
+
+class VarDecl(var varRefNode: VarRef, var typeNode: Type, override var classDeclaration: ClassDeclaration? = null, override val isStatic: Boolean = true) : LangObj(), ClassMemberDecl, FieldDecl {
+    override var `this`: ClassSymbol? = null
+}

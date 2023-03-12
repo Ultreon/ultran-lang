@@ -2,7 +2,7 @@ package com.ultreon.ultranlang
 
 import com.ultreon.ultranlang.annotations.Visit
 import com.ultreon.ultranlang.ast.*
-import com.ultreon.ultranlang.classes.ScriptClasses
+import com.ultreon.ultranlang.classes.ULClasses
 import com.ultreon.ultranlang.error.ErrorCode
 import com.ultreon.ultranlang.error.SemanticException
 import com.ultreon.ultranlang.func.NativeCalls
@@ -10,22 +10,26 @@ import com.ultreon.ultranlang.symbol.ClassSymbol
 import com.ultreon.ultranlang.symbol.FuncSymbol
 import com.ultreon.ultranlang.symbol.VarSymbol
 import com.ultreon.ultranlang.token.Token
-import java.util.*
 
 class SemanticAnalyzer(
     private val calls: NativeCalls,
-    private val classes: ScriptClasses
+    private val classes: ULClasses
 ) : NodeVisitor() {
     var currentScope: ScopedSymbolTable? = null
+    val prefix = " ".repeat(10)
 
     fun log(msg: Any?) {
         if (shouldLogScope) {
-            logger.debug(Objects.toString(msg))
+            logger.debug("$prefix | $msg")
         }
     }
 
-    fun error(errorCode: ErrorCode, token: Token) {
-        throw SemanticException(errorCode, token, "${errorCode.value} -> $token")
+    fun error(errorCode: ErrorCode, token: Token, message: String? = null) {
+        val location = token.location
+        if (message != null) {
+            throw SemanticException(errorCode, token, "$message @ $location")
+        }
+        throw SemanticException(errorCode, token, "${errorCode.value} @ $location")
     }
 
     @Visit(Block::class)
@@ -80,7 +84,7 @@ class SemanticAnalyzer(
 
         this.currentScope!!.insert(funcSymbol)
 
-        log("ENTER scope: $funcName")
+        log("ENTER function: $funcName")
 
         // Scope for parameters and local variables
         val functionScope = ScopedSymbolTable(funcName, this.currentScope!!.scopeLevel + 1, this.currentScope, calls)
@@ -91,7 +95,7 @@ class SemanticAnalyzer(
         for (param in node.formalParams) {
             val paramType = this.currentScope!!.lookup(param.typeNode.value as String)
             val paramName = param.varRefNode.value as String
-            val varSymbol = VarSymbol(paramName, paramType)
+            val varSymbol = VarSymbol(paramName, paramType, false)
             this.currentScope!!.insert(varSymbol)
             funcSymbol.formalParams.add(varSymbol)
         }
@@ -103,45 +107,209 @@ class SemanticAnalyzer(
         this.log(functionScope)
 
         this.currentScope = this.currentScope?.enclosingScope
-        this.log("LEAVE scope: $funcName")
+        this.log("LEAVE function: $funcName")
 
         // accessed by the interpreter when executing the procedure call
         funcSymbol.statements = node.statements
     }
 
-    @Visit(ClassDeclaration::class)
-    fun visitClassDecl(node: ClassDeclaration) {
-        val className = node.className
-        val classSymbol = ClassSymbol(className, classes = classes, parentCalls = calls)
+    @Visit(MethodDeclaration::class)
+    fun visitMethodDecl(node: MethodDeclaration) {
+        val funcName = node.methodName
+        val funcSymbol = FuncSymbol(funcName, calls = calls)
 
-        this.currentScope!!.insert(classSymbol)
+        this.currentScope!!.insert(funcSymbol)
 
-        log("ENTER class: $className")
+        log("ENTER method: $funcName")
 
         // Scope for parameters and local variables
-        val functionScope = ScopedSymbolTable(className, this.currentScope!!.scopeLevel + 1, this.currentScope, classSymbol.calls)
+        val functionScope = ScopedSymbolTable(funcName, this.currentScope!!.scopeLevel + 1, this.currentScope, calls)
 
         this.currentScope = functionScope
 
         // Insert parameters into the procedure scope
-        for (member in node.members) {
+        for (param in node.formalParams) {
+            val paramType = this.currentScope!!.lookup(param.typeNode.value as String)
+            val paramName = param.varRefNode.value as String
+            val varSymbol = VarSymbol(paramName, paramType, false)
+            this.currentScope!!.insert(varSymbol)
+            funcSymbol.formalParams.add(varSymbol)
+        }
+
+        for (statement in node.statements) {
+            this.visit(statement)
+        }
+
+        this.log(functionScope)
+
+        this.currentScope = this.currentScope?.enclosingScope
+        this.log("LEAVE method: $funcName")
+
+        // accessed by the interpreter when executing the procedure call
+        funcSymbol.statements = node.statements
+    }
+
+    @Visit(ConstructorDeclaration::class)
+    fun visitConstructorDecl(node: ConstructorDeclaration) {
+        val name = "<init>"
+        val symbol = FuncSymbol(name, calls = calls)
+
+        this.currentScope!!.insert(symbol)
+
+        log("ENTER constructor: $name")
+
+        // Scope for parameters and local variables
+        val oldScope = currentScope
+
+        this.currentScope = node.classDeclaration.instanceScope
+
+        // Insert parameters into the procedure scope
+        for (param in node.formalParams) {
+            val paramType = this.currentScope!!.lookup(param.typeNode.value as String)
+            val paramName = param.varRefNode.value as String
+            val varSymbol = VarSymbol(paramName, paramType, false)
+            this.currentScope!!.insert(varSymbol)
+            symbol.formalParams.add(varSymbol)
+        }
+
+        for (statement in node.statements) {
+            this.visit(statement)
+        }
+
+        this.log(currentScope)
+
+        this.currentScope = oldScope
+        this.log("LEAVE constructor: $name")
+
+        // accessed by the interpreter when executing the procedure call
+        symbol.statements = node.statements
+    }
+
+    @Visit(ClassDeclaration::class)
+    fun visitClassDecl(node: ClassDeclaration) {
+        val name = node.className
+        val symbol = ClassSymbol(name, classes = classes, parentCalls = calls)
+
+        this.currentScope!!.insert(symbol)
+
+        log("ENTER class: $name")
+
+        val oldScope = currentScope
+
+        // Scope for parameters and local variables
+        val staticScope = ScopedSymbolTable(name, this.currentScope!!.scopeLevel + 1, this.currentScope, symbol.staticCalls)
+        val instanceScope = ScopedSymbolTable(name, staticScope.scopeLevel + 1, staticScope, symbol.instanceCalls)
+
+        node.staticScope = staticScope
+        node.instanceScope = instanceScope
+
+        // Insert parameters into the procedure scope
+        for (member in node.staticMembers) {
+            if (member is MethodDeclaration) {
+                member.`this` = symbol
+                this.currentScope = instanceScope
+                this.visit(member)
+            } else if (member is FieldDecl) {
+                if (member is LangObj) {
+                    member.`this` = symbol
+                    this.currentScope = instanceScope
+                    this.visit(member)
+                } else {
+                    throw Error("Class member is not a language object.")
+                }
+            }
+        }
+
+        this.visit(node.classInit)
+
+        this.currentScope = instanceScope
+        for (member in node.instanceFields) {
             if (member is LangObj) {
+                member.`this` = symbol
+                this.currentScope = instanceScope
                 this.visit(member)
             } else {
                 throw Error("Class member is not a language object.")
             }
         }
 
-        this.log(functionScope)
+        // Insert parameters into the procedure scope
+        for (member in node.instanceMethods) {
+            member.`this` = symbol
+            this.currentScope = instanceScope
+            this.visit(member)
+        }
 
-        this.currentScope = this.currentScope?.enclosingScope
-        this.log("LEAVE class: $className")
+        // Insert parameters into the procedure scope
+        for (member in node.constructors) {
+            member.`this` = symbol
+            this.currentScope = instanceScope
+            this.visit(member)
+        }
+
+        // Insert parameters into the procedure scope
+        for (member in node.instanceMembers) {
+            if (member is LangObj) {
+                var static = false
+                if (member is MethodDeclaration) {
+                    if (member.isStatic) {
+                        static = true
+                    } else {
+                        member.`this` = symbol
+                    }
+                }
+                if (member is ConstructorDeclaration) {
+                    member.`this` = symbol
+                }
+                if (member is FieldDecl) {
+                    if (member.isStatic) {
+                        static = true
+                    } else {
+                        member.`this` = symbol
+                    }
+                }
+                if (member is ClassInitDecl) {
+                    static = true
+                }
+                if (static) {
+                    this.currentScope = staticScope
+                } else {
+                    this.currentScope = instanceScope
+                }
+                this.visit(member)
+            } else {
+                throw Error("Class member is not a language object.")
+            }
+        }
+
+        this.log(staticScope)
+
+        this.currentScope = oldScope
+        this.log("LEAVE class: $name")
 
         // accessed by the interpreter when executing the procedure call
-        classSymbol.statements = node.classInit.statements
-        classSymbol.members = node.members
-        classSymbol.fields = node.fields
-        classSymbol.classInit = node.classInit
+        symbol.statements = node.classInit.statements
+
+        symbol.classInitDecl = node.classInit
+        symbol.staticFieldsDecl = node.staticFields
+        symbol.staticMethodsDecl = node.staticMethods
+        symbol.staticMembersDecl = node.staticMembers
+
+        symbol.constructorsDecl = node.constructors
+        symbol.instanceFieldsDecl = node.instanceFields
+        symbol.instanceMethodsDecl = node.instanceMethods
+        symbol.instanceMembersDecl = node.instanceMembers
+    }
+
+    @Visit(ClassInitDecl::class)
+    fun visitClassInitDecl(node: ClassInitDecl) {
+        log("ENTER class initializer.")
+
+        for (statement in node.statements) {
+            visit(statement)
+        }
+
+        log("LEAVE class initializer")
     }
 
     @Visit(VarDecl::class)
@@ -152,7 +320,26 @@ class SemanticAnalyzer(
         // We have all the information we need to create a variable symbol.
         // Create the symbol and insert it into the symbol table.
         val varName = node.varRefNode.value as String
-        val varSymbol = VarSymbol(varName, typeSymbol)
+        val varSymbol = VarSymbol(varName, typeSymbol, false)
+
+        // Signal on error if the table already has a symbol
+        // with the same name
+        if (this.currentScope!!.lookup(varName, currentScopeOnly = true) != null) {
+            this.error(ErrorCode.DUPLICATE_ID, node.varRefNode.token)
+        }
+
+        this.currentScope!!.insert(varSymbol)
+    }
+
+    @Visit(ValDecl::class)
+    fun visitValDecl(node: ValDecl) {
+        val typeName = node.typeNode.value as String
+        val typeSymbol = this.currentScope!!.lookup(typeName)
+
+        // We have all the information we need to create a variable symbol.
+        // Create the symbol and insert it into the symbol table.
+        val varName = node.varRefNode.value as String
+        val varSymbol = VarSymbol(varName, typeSymbol, true)
 
         // Signal on error if the table already has a symbol
         // with the same name
@@ -175,6 +362,22 @@ class SemanticAnalyzer(
     fun visitVar(node: VarRef) {
         val varName = node.value as String
         val varSymbol = this.currentScope!!.lookup(varName)
+
+        if (varSymbol == null) {
+            this.error(ErrorCode.ID_NOT_FOUND, node.token)
+        }
+    }
+
+    @Visit(ThisRef::class)
+    fun visitThis(node: ThisRef) {
+        val varName = node.value as String
+        val varSymbol = this.currentScope!!.lookup(varName)
+
+        val classRef = node.classRef
+
+        if (classRef == null) {
+            this.error(ErrorCode.UNEXPECTED_TOKEN, node.token, "Token 'this' used outside of class.")
+        }
 
         if (varSymbol == null) {
             this.error(ErrorCode.ID_NOT_FOUND, node.token)

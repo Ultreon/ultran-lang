@@ -1,21 +1,35 @@
 package com.ultreon.ultranlang.symbol
 
 import com.ultreon.ultranlang.ActivationRecord
-import com.ultreon.ultranlang.ast.ClassInitDecl
-import com.ultreon.ultranlang.ast.ClassMemberDecl
-import com.ultreon.ultranlang.ast.FieldDecl
-import com.ultreon.ultranlang.ast.LangObj
-import com.ultreon.ultranlang.classes.ClassRef
-import com.ultreon.ultranlang.classes.ScriptClass
-import com.ultreon.ultranlang.classes.ScriptClasses
+import com.ultreon.ultranlang.ast.*
+import com.ultreon.ultranlang.classes.ClassHolder
+import com.ultreon.ultranlang.classes.ULClass
+import com.ultreon.ultranlang.classes.ULClasses
 import com.ultreon.ultranlang.func.NativeCalls
 
-class ClassSymbol(name: String, private val classes: ScriptClasses, private val parentCalls: NativeCalls) : Symbol(name) {
-    lateinit var classInit: ClassInitDecl
-    lateinit var fields: MutableList<FieldDecl>
-    lateinit var members: MutableList<ClassMemberDecl>
+class ClassSymbol(name: String, private val classes: ULClasses, private val parentCalls: NativeCalls) : Symbol(name) {
+    lateinit var classInitDecl: ClassInitDecl
+    lateinit var staticFieldsDecl: MutableList<FieldDecl>
+    lateinit var staticMethodsDecl: MutableList<MethodDeclaration>
+    lateinit var staticMembersDecl: MutableList<ClassMemberDecl>
 
-    val calls = NativeCalls(parent = parentCalls)
+    lateinit var constructorsDecl: MutableList<ConstructorDeclaration>
+    lateinit var instanceFieldsDecl: MutableList<FieldDecl>
+    lateinit var instanceMethodsDecl: MutableList<MethodDeclaration>
+    lateinit var instanceMembersDecl: MutableList<ClassMemberDecl>
+
+    lateinit var classInit: ClassInitDecl
+    lateinit var staticFields: MutableList<VarSymbol>
+    lateinit var staticMethods: MutableList<MethodDeclaration>
+    lateinit var staticMembers: MutableList<ClassMemberDecl>
+
+    lateinit var constructors: MutableList<ConstructorDeclaration>
+    lateinit var instanceFields: MutableList<FieldDecl>
+    lateinit var instanceMethods: MutableList<MethodDeclaration>
+    lateinit var instanceMembers: MutableList<ClassMemberDecl>
+
+    val staticCalls = NativeCalls(parent = parentCalls)
+    val instanceCalls = NativeCalls(parent = staticCalls)
 
     val isNative: Boolean
         get() {
@@ -28,10 +42,10 @@ class ClassSymbol(name: String, private val classes: ScriptClasses, private val 
     }
 
     fun representation(): String = toString()
-    fun getRef(ar: ActivationRecord): ClassRef? {
+    fun getRef(ar: ActivationRecord): ClassHolder? {
         return classes.getRef(name)
     }
-    fun getNative(ar: ActivationRecord): ScriptClass? {
+    fun getNative(ar: ActivationRecord): ULClass? {
         return classes[name]
     }
 

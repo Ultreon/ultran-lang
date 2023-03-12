@@ -6,6 +6,8 @@ import com.ultreon.ultranlang.token.TokenType
 import java.lang.RuntimeException
 
 class Lexer(private val text: String) {
+    val location: String
+        get() = "$lineno:$column"
     var prevPos: Int = -1
         private set
     var pos = 0
