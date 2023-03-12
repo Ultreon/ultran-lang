@@ -1,3 +1,1 @@
-
-rootProject.name = "ultranlang"
-
+rootProject.name = "ultran-lang"

@@ -1,60 +1,143 @@
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-import java.time.ZonedDateTime
-import java.time.format.DateTimeFormatter
+import org.gradle.internal.buildtree.RunTasksRequirements
 
 plugins {
-    kotlin("jvm") version "1.7.10"
+    kotlin("multiplatform") version "1.8.10"
     application
 }
 
-val projectVersion = property("project_version")
-
 group = "com.ultreon"
-version =
-    "${projectVersion}-${if (System.getenv("GITHUB_BUILD_NUMBER") == null) "local" else System.getenv("GITHUB_BUILD_NUMBER")}"
-
-fun getViewVersion(): Any {
-    return "${projectVersion}+${if (System.getenv("GITHUB_BUILD_NUMBER") == null) "local" else System.getenv("GITHUB_BUILD_NUMBER")}"
-}
-
-val buildDate: ZonedDateTime = ZonedDateTime.now()
+version = "0.1.0"
 
 repositories {
     mavenCentral()
 }
+kotlin {
+    linuxX64 {
+        binaries {
+            executable {
+                runTask?.args("main.ulan", "--internal-errors", "--tokens")
+                runTask?.workingDir = file("${rootProject.projectDir}/run/").also {
+                    it.mkdirs()
+                }
+                entryPoint = "main"
+            }
+        }
+    }
+    mingwX64 {
+        binaries {
+            executable {
+                runTask?.args("main.ulan", "--internal-errors", "--tokens")
+                runTask?.workingDir = file("${rootProject.projectDir}/run/").also {
+                    it.mkdirs()
+                }
+                entryPoint = "main"
+            }
+        }
+    }
+//    mingwX86 {
+//        binaries {
+//            executable {
+//                entryPoint = "main"
+//            }
+//        }
+//    }
+    macosX64 {
+        binaries {
+            executable {
+                entryPoint = "main"
+                runTask?.args("main.ulan", "--internal-errors", "--tokens")
+                runTask?.workingDir = file("${rootProject.projectDir}/run/").also {
+                    it.mkdirs()
+                }
+            }
+        }
+    }
+    macosArm64 {
+        binaries {
+            executable {
+                runTask?.args("main.ulan", "--internal-errors", "--tokens")
+                runTask?.workingDir = file("${rootProject.projectDir}/run/").also {
+                    it.mkdirs()
+                }
+                entryPoint = "main"
+            }
+        }
+    }
+    jvm {
+        jvmToolchain(8)
+        withJava()
 
-dependencies {
-    testImplementation(kotlin("test"))
-    implementation(kotlin("reflect"))
-    implementation("com.google.code.gson:gson:2.10")
-}
+        testRuns["test"].executionTask.configure {
+            useJUnitPlatform()
+        }
+    }
 
-tasks.test {
-    useJUnitPlatform()
-}
+    @Suppress("UNUSED_VARIABLE")
+    sourceSets {
+        val commonMain by getting {
+            repositories {
+                mavenCentral()
+            }
 
-tasks.withType<KotlinCompile> {
-    kotlinOptions.jvmTarget = "1.8"
-}
-
-java {
-    withSourcesJar()
-}
-
-tasks.processResources {
-    inputs.dir("src/main/resources")
-
-    inputs.property("version", getViewVersion())
-    inputs.property("build_date", buildDate.format(DateTimeFormatter.RFC_1123_DATE_TIME))
-
-    filesMatching("product.json") {
-        expand(
-            "version" to getViewVersion(),
-            "build_date" to buildDate.format(DateTimeFormatter.RFC_1123_DATE_TIME),
-        )
+            dependencies {
+                implementation("com.soywiz.korlibs.kbignum:kbignum:3.4.0")
+                implementation("com.squareup.okio:okio:3.3.0")
+                implementation("com.soywiz.korlibs.korio:korio:3.4.0")
+                implementation("com.bkahlert.kommons:kommons:2.8.0")
+                implementation("com.bkahlert.kommons:kommons-core:2.8.0")
+                implementation("com.bkahlert.kommons:kommons-uri:2.8.0")
+                implementation("com.bkahlert.kommons:kommons-time:2.8.0")
+                implementation("com.bkahlert.kommons:kommons-text:2.8.0")
+            }
+        }
+        val commonTest by getting
+        val linuxX64Main by getting {
+            repositories {
+                mavenCentral()
+            }
+        }
+        val linuxX64Test by getting
+        val mingwX64Main by getting {
+            repositories {
+                mavenCentral()
+            }
+        }
+        val mingwX64Test by getting
+//        val mingwX86Main by getting {
+//            repositories {
+//                mavenCentral()
+//            }
+//        }
+//        val mingwX86Test by getting
+        val macosX64Main by getting {
+            repositories {
+                mavenCentral()
+            }
+        }
+        val macosX64Test by getting
+        val macosArm64Main by getting {
+            repositories {
+                mavenCentral()
+            }
+        }
+        val macosArm64Test by getting
+        val jvmMain by getting {
+            repositories {
+                mavenCentral()
+            }
+        }
+        val jvmTest by getting
     }
 }
 
 application {
     mainClass.set("MainKt")
+    applicationName = "UltranLang"
+}
+
+tasks.run.configure {
+    args("main.ulan", "--internal-errors", "--tokens")
+    workingDir = file("$projectDir/run/").also {
+        it.mkdirs()
+    }
 }

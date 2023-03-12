@@ -7,10 +7,10 @@ function Alpha(a : integer; b : integer) {
     }
     var x: integer
     x = (a + b ) * 2
-    Beta(5, 10);      [ function call ]
+    Beta(5, 10)      [ function call ]
 }
 
-Alpha(3 + 5, 7);  [ function call ]
+Alpha(3 + 5, 7)  [ function call ]
 var x: integer
 x = 300
 var startX: integer
@@ -19,34 +19,56 @@ startX = 10
 startY = 20
 
 function PrintHelloWorld() {
-    print("Hello World")
+    printLn("Hello World")
 }
+
+class HelloWorldProgram {
+    val name: string
+
+    {
+        PrintHelloWorld()
+    }
+
+    constructor(name: string) {
+        this.name = name
+    }
+
+    function print() {
+        printLn("Hello " + name)
+    }
+}
+
+[ HelloWorldProgram("Qboi").print() ]
 
 PrintHelloWorld()
 
-print("Hello World! Number: " + randInt(startX, startY))
-print("" + randInt(startX, startY))
-print("" + randInt(startX, startY))
-print("" + randInt(startX, startY))
-print("" + randInt(startX, startY))
-print("" + randInt(startX, startY))
-print("" + randInt(startX, startY))
-print("" + randInt(startX, startY))
-print("" + randInt(startX, startY))
-print("" + randInt(startX, startY))
-print("" + randInt(startX, startY))
-print("" + randInt(startX, startY))
-print("" + randInt(startX, startY))
-print("" + randInt(startX, startY))
-print("" + randInt(startX, startY))
-print("" + randInt(startX, startY))
-print("" + randInt(startX, startY))
-print("" + randInt(startX, startY))
-print("" + randInt(startX, startY))
-print("" + randInt(startX, startY))
-print("" + randInt(startX, startY))
-print("" + randInt(startX, startY))
-print("" + randInt(startX, startY))
-print("" + randInt(startX, startY))
-print("" + randInt(startX, startY))
-print("" + randInt(startX, startY))
+printLn("Hello World! Number: " + randInt(startX, startY))
+printLn("" + randInt(startX, startY))
+printLn("" + randInt(startX, startY))
+printLn("" + randInt(startX, startY))
+printLn("" + randInt(startX, startY))
+printLn("" + randInt(startX, startY))
+printLn("" + randInt(startX, startY))
+printLn("" + randInt(startX, startY))
+printLn("" + randInt(startX, startY))
+printLn("" + randInt(startX, startY))
+printLn("" + randInt(startX, startY))
+printLn("" + randInt(startX, startY))
+printLn("" + randInt(startX, startY))
+printLn("" + randInt(startX, startY))
+printLn("" + randInt(startX, startY))
+printLn("" + randInt(startX, startY))
+printLn("" + randInt(startX, startY))
+printLn("" + randInt(startX, startY))
+printLn("" + randInt(startX, startY))
+printLn("" + randInt(startX, startY))
+printLn("" + randInt(startX, startY))
+printLn("" + randInt(startX, startY))
+printLn("" + randInt(startX, startY))
+printLn("" + randInt(startX, startY))
+printLn("" + randInt(startX, startY))
+printLn("" + randInt(startX, startY))
+
+[ var name: string ]
+[ name = input("What's your name?") ]
+[ printLn("Hello, " + name) ]
