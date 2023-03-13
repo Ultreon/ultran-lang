@@ -1,9 +1,7 @@
 package com.ultreon.ultranlang.classes
 
-import com.ultreon.ultranlang.symbol.VarSymbol
+abstract class ULConstructor(name: String) : ULMethod(name, false) {
+    abstract override val paramTypes: List<ULClass>
 
-class ULConstructor(name: String) : ULMethod(name, false) {
-    override fun call(instance: ULObject?, params: Array<VarSymbol>): ULObject {
-        return PrimitiveVoid
-    }
+    abstract override fun call(instance: ULObject?, params: Array<ULObject>): PrimitiveVoid
 }

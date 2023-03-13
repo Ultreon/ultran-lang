@@ -30,15 +30,15 @@ class HelloWorldProgram {
     }
 
     constructor(name: string) {
-        this.name = name
+        this.name [ = name ]
     }
 
-    function print() {
+    function print1() {
         printLn("Hello " + name)
     }
 }
 
-[ HelloWorldProgram("Qboi").print() ]
+[ HelloWorldProgram("Qboi").print1() ]
 
 PrintHelloWorld()
 

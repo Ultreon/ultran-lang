@@ -2,9 +2,9 @@ package com.ultreon.ultranlang.symbol
 
 import com.ultreon.ultranlang.ActivationRecord
 import com.ultreon.ultranlang.ast.LangObj
-import com.ultreon.ultranlang.classes.ULObject
 import com.ultreon.ultranlang.classes.ClassHolder
 import com.ultreon.ultranlang.classes.ULClasses
+import com.ultreon.ultranlang.classes.ULObject
 
 class ClassRefSymbol(name: String, formalParams: List<VarSymbol>? = null, private val classes: ULClasses) : Symbol(name) {
     val isNative: Boolean

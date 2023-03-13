@@ -15,9 +15,9 @@ abstract class PrimitiveClass<T>(value: String): ULClass(value) {
 
     abstract fun createObject(langObj: T): ULObject
 
-    override fun invoke(formalParams: List<ULObject>): ULObject {
+    override fun invoke(arguments: List<ULObject>): ULObject {
         try {
-            throw ExecutionException(Runtime.classes["ultran/lang/VMInternalError"]!!(listOf(
+            throw ExecutionException(Runtime.classes["ultran/VMInternalError"]!!(listOf(
                 PrimitiveString("Can't instantiate a primitive class.")
             )))
         } catch (t: Throwable) {

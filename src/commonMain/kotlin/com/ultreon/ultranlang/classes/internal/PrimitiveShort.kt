@@ -2,7 +2,7 @@ package com.ultreon.ultranlang.classes.internal
 
 import com.ultreon.ultranlang.classes.PrimitiveObject
 
-class PrimitiveString(value: String) : PrimitiveObject<String>(value, String::class) {
+class PrimitiveShort(value: Short) : PrimitiveObject<Short>(value, Short::class) {
     override fun castToLangObject() {
         TODO("Not yet implemented")
     }

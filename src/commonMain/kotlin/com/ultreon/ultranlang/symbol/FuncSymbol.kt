@@ -17,7 +17,7 @@ open class FuncSymbol(name: String, formalParams: List<VarSymbol>? = null, priva
     }
 
     fun representation(): String = toString()
-    fun callNative(ar: ActivationRecord): Any? {
+    open fun callNative(ar: ActivationRecord): Any? {
         return calls.nativeCall(this, formalParams, ar)
     }
 }

@@ -76,7 +76,7 @@ class Parser(val lexer: Lexer) {
         eat(TokenType.PROGRAM)
         val varNode = variable()
         if (varNode is VarRef) {
-            val programName = varNode.value as String
+            val programName = varNode.value
             eatEnd()
             val nodes = statementList(endToken = TokenType.EOF)
             val programNode = Program(programName)
@@ -337,13 +337,13 @@ class Parser(val lexer: Lexer) {
 
         logger.debug("${currentToken.locationIndented} | Finished constructor declaration ($hash) at ${currentToken.line}:${currentToken.column}")
 
-        val methodDeclaration = ConstructorDeclaration(formalParams, classDeclaration)
+        val declaration = ConstructorDeclaration(formalParams, classDeclaration)
 
         for (node in nodes) {
-            methodDeclaration.statements.add(node)
+            declaration.statements.add(node)
         }
 
-        return methodDeclaration.also {
+        return declaration.also {
             classDeclaration.constructors += it
         }
     }
@@ -370,10 +370,6 @@ class Parser(val lexer: Lexer) {
         logger.debug("${currentToken.locationIndented} | Ending member list")
         eat(TokenType.RCURL, customMessage = "Expected class member end end, got ${currentToken.repr()} instead @ ${currentToken.locationIndented}")
         logger.debug("${currentToken.locationIndented} | Ending member list")
-
-        for (node in nodes) {
-            if (node is ClassInitDecl) classDeclaration.classInit.statements += node.statements
-        }
 
         logger.debug("${currentToken.locationIndented} | Finishing class")
 
@@ -553,9 +549,7 @@ class Parser(val lexer: Lexer) {
                 if (classDeclaration != null) {
                     when (currentToken.type) {
                         TokenType.THIS -> {
-                            eat(TokenType.THIS)
-                            eat(TokenType.DOT)
-                            if (lexer.currentChar == '(') funcCallStatement() else assignmentStatement()
+                            thisRef(classDeclaration, null)
                         }
 
                         TokenType.RCURL -> {
@@ -581,7 +575,7 @@ class Parser(val lexer: Lexer) {
     /**
      * func_call_statement : ID LPAREN (expr (COMMA expr)*)? RPAREN
      */
-    fun funcCallStatement(): FuncCall {
+    fun funcCallStatement(parent: Returnable? = null): FuncCall {
         val token = currentToken
 
         val functionName = currentToken.value as String
@@ -601,7 +595,67 @@ class Parser(val lexer: Lexer) {
 
         eat(TokenType.RPAREN)
 
-        return FuncCall(functionName, actualParams, token)
+        val node = FuncCall(functionName, actualParams, token)
+
+        var cur = parent
+        cur?.child = node
+        node.parent = cur
+        if (cur != null) {
+            println("cur = $cur, node = $node")
+        }
+
+        cur = node
+        while (currentToken.type == TokenType.DOT) {
+            eat(TokenType.DOT)
+            val subToken = currentToken
+
+            val subName = currentToken.value as String
+
+//            if (lexer.currentChar == '(') {
+//                eat(TokenType.LPAREN)
+//
+//                val actualParams = mutableListOf<LangObj>()
+//                if (currentToken.type != TokenType.RPAREN) {
+//                    actualParams.add(expr())
+//                }
+//
+//                while (currentToken.type == TokenType.COMMA) {
+//                    eat(TokenType.COMMA)
+//                    actualParams.add(expr())
+//                }
+//
+//                eat(TokenType.RPAREN)
+//
+//                val loopNode = FuncCall(subName, actualParams, subToken)
+//
+//                cur = parent
+//                cur?.child = loopNode
+//                loopNode.parent = cur
+//                if (cur != null) {
+//                    println("cur = $cur, node = $loopNode")
+//                }
+//
+//                cur = loopNode
+//                continue
+//            }
+            var loopNode: Returnable = VarRef(currentToken)
+            val loopPos = lexer.prevPos
+            eat(TokenType.ID)
+            if (currentToken.type == TokenType.LPAREN) {
+                lexer.pos = loopPos
+                currentToken = getNextToken()
+                loopNode = funcCallStatement()
+            }
+            cur?.child = loopNode
+            loopNode.parent = cur
+            if (cur != null) {
+                println("DOT1: $cur -> $loopNode")
+                println("DOT2: ${loopNode.parent} -> ${cur.child}")
+            }
+            cur = loopNode
+        }
+
+        return node
     }
 
     /**
@@ -622,12 +676,16 @@ class Parser(val lexer: Lexer) {
     /**
      * variable : ID
      */
-    tailrec fun variable(parent: Returnable? = null): Returnable {
+    fun variable(parent: Returnable? = null): Returnable {
         var node: Returnable = VarRef(currentToken)
         val pos = lexer.prevPos
-        parent?.let {
-            it.child = node
+        var cur = parent
+        cur?.child = node
+        node.parent = cur
+        if (cur != null) {
+            println("Exec: $cur -> $node")
         }
+
         eat(TokenType.ID)
 
         if (currentToken.type == TokenType.LPAREN) {
@@ -636,11 +694,52 @@ class Parser(val lexer: Lexer) {
             node = funcCallStatement()
         }
 
+        cur = node
+        while (currentToken.type == TokenType.DOT) {
+            eat(TokenType.DOT)
+            var loopNode: Returnable = VarRef(currentToken)
+            val loopPos = lexer.prevPos
+            cur?.child = loopNode
+            loopNode.parent = cur
+            if (cur != null) {
+                println("cur = $cur, loopNode = $node")
+                println("cur.child = ${cur.child}, loopNode.parent = ${loopNode.parent}")
+            }
+
+            eat(TokenType.ID)
+
+            if (currentToken.type == TokenType.LPAREN) {
+                lexer.pos = loopPos
+                currentToken = getNextToken()
+                loopNode = funcCallStatement()
+            }
+            cur = loopNode
+        }
+
+        return node
+    }
+
+    /**
+     * variable : ID
+     */
+    fun thisRef(classDeclaration: ClassDeclaration, parent: Returnable? = null): ThisRef {
+        val node = ThisRef(classDeclaration, currentToken)
+        val pos = lexer.prevPos
+        parent?.child = node
+        node.parent = parent
+        println("parent = $parent, node = $node")
+
+        eat(TokenType.THIS)
+        if (currentToken.type == TokenType.DOT) {
+            eat(TokenType.DOT)
+            variable(node)
+        }
         return if (currentToken.type != TokenType.DOT) {
             node
         } else {
             eat(TokenType.DOT)
             variable(node)
+            node
         }
     }
 

@@ -153,4 +153,5 @@ fun printErr(message: String?) {
 fun init() {
     calls = NativeCalls().also { it.loadDefaults() }
     classes = ULClasses().also { it.loadDefaults() }
+    Runtime.init(LaunchProperties())
 }

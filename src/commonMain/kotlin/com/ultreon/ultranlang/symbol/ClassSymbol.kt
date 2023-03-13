@@ -29,6 +29,8 @@ class ClassSymbol(name: String, private val classes: ULClasses, val parentCalls:
     lateinit var instanceMethods: MutableList<MethodDeclaration>
     lateinit var instanceMembers: MutableList<ClassMemberDecl>
 
+    lateinit var ulClass: ULClass
+
     val staticCalls = NativeCalls(parent = parentCalls)
     val instanceCalls = NativeCalls(parent = staticCalls)
 

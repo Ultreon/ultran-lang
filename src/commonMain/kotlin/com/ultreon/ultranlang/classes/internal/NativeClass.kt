@@ -2,7 +2,7 @@ package com.ultreon.ultranlang.classes.internal
 
 import com.ultreon.ultranlang.classes.*
 
-class NativeClass() : ULClass("Class") {
+abstract class NativeClass() : ULClass("Class") {
     override val staticFields: List<ULField>
         get() = TODO("Not yet implemented")
     override val staticMethods: List<ULMethod>
@@ -18,7 +18,7 @@ class NativeClass() : ULClass("Class") {
     override val constructors: List<ULConstructor>
         get() = TODO("Not yet implemented")
 
-    override fun invoke(formalParams: List<ULObject>): ULObject {
+    override fun invoke(arguments: List<ULObject>): ULObject {
         TODO("Not yet implemented")
     }
 

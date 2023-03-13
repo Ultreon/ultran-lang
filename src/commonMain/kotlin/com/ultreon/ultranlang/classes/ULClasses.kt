@@ -1,5 +1,7 @@
 package com.ultreon.ultranlang.classes
 
+import com.ultreon.ultranlang.Runtime
+
 class ULClasses {
     private val classes = mutableMapOf<String, ULClass>()
     private val refs: MutableMap<String, ClassHolder> = mutableMapOf()
@@ -21,6 +23,7 @@ class ULClasses {
     }
 
     operator fun get(name: String): ULClass? {
+        Runtime.getPrimitiveClass(name.lowercase())?.let { return@get it }
         return classes[name]
     }
 }
