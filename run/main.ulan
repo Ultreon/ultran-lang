@@ -38,7 +38,7 @@ class HelloWorldProgram {
     }
 }
 
-[ HelloWorldProgram("Qboi").print1() ]
+HelloWorldProgram("Qboi").print1()
 
 PrintHelloWorld()
 

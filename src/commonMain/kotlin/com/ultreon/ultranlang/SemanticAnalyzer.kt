@@ -347,10 +347,13 @@ class SemanticAnalyzer(
 
         when (val funcName = this.currentScope!!.lookup(node.funcName)) {
             is MethodSymbol -> {
+                println("FUNC_NAME ${node.funcName}; METHOD")
                 // accessed by the interpreter when executing the procedure call
                 node.funcSymbol = funcName
+                node.classSymbol = funcName.classSymbol
             }
             is FuncSymbol -> {
+                println("FUNC_NAME ${node.funcName}; FUNC")
                 // accessed by the interpreter when executing the procedure call
                 node.funcSymbol = funcName
             }
